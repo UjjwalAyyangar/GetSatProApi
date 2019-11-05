@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 Base = declarative_base()
 
+
 # Permission
 class Permission(Base):
     __tablename__ = "permission"
@@ -23,6 +24,7 @@ class PermissionGroup(Base):
 
     Group_Desc = Column(String(200), nullable=True)
 
+
 # USER
 
 class UserRole(Base):
@@ -30,11 +32,13 @@ class UserRole(Base):
     Role_ID = Column(Integer, primary_key=True)
     User_Type = Column(String(50))
 
+
 class UserInfo(Base):
     __tablename__ = "user_info"
     User_ID = Column(Integer, primary_key=True)
     First_Name = Column(String(250), nullable=False)
     Last_Name = Column(String(250), nullable=False)
+    Username = Column(String(250), nullable=False)
     Email = Column(String(400), nullable=False)
     Phone = Column(String(20), nullable=False)
 
@@ -52,6 +56,15 @@ class UserInfo(Base):
     def check_password(self, password):
         return check_password_hash(self.Login_password_hash, password)
 
+    @property
+    def serialize(self):
+        return {
+            'FirstName': self.First_Name,
+            'LastName': self.Last_Name,
+            'userId': self.User_ID,
+            'lastloggedIn': self.Last_Login
+        }
+
 
 # Module
 
@@ -59,6 +72,7 @@ class Submodule(Base):
     __tablename__ = "submodule"
     Submodule_ID = Column(Integer, primary_key=True)
     Submodule_name = Column(String(100), nullable=False)
+
 
 class Module(Base):
     __tablename__ = "module"
@@ -68,6 +82,14 @@ class Module(Base):
     Submodule = relationship(Submodule)
 
     Module_Name = Column(String(100), nullable=False)
+
+    @property
+    def serialize(self):
+        return {
+            'moduleName': self.Module_Name,
+            'progress': 0
+        }
+
 
 # Exam
 
@@ -79,10 +101,11 @@ class ExamQuestion(Base):
     Option_2 = Column(Integer)
     Option_3 = Column(Integer)
 
+
 class Exam(Base):
     __tablename__ = "exam"
     Exam_ID = Column(Integer, primary_key=True)
-
+    Exam_Name = Column(String(100), nullable=False)
     Question_Set = Column(Integer, ForeignKey('exam_question.Question_ID'))
     ExamQuestion = relationship(ExamQuestion)
 
@@ -92,7 +115,13 @@ class Exam(Base):
     Module_ID = Column(Integer, ForeignKey('module.Module_ID'))
     Module = relationship(Module)
 
-
+    @property
+    def serialize(self):
+        return {
+            "examName": self.Exam_Name,
+            "examId": self.Exam_ID,
+            "isCompleted": False
+        }
 
 
 # Report
@@ -120,7 +149,16 @@ class Flashcards(Base):
     Submodule_ID = Column(Integer, ForeignKey('submodule.Submodule_ID'))
     Submodule = relationship(Submodule)
 
+    @property
+    def serialize(self):
+        return {
+            'flashcardId': self.FC_ID,
+            'flashcardFront': self.Question,
+            'flashcardBack': self.Answer
+        }
 
+
+# Hard easy and medium?
 class FC_Category(Base):
     __tablename__ = "fc_category"
     Category_ID = Column(Integer, primary_key=True)
@@ -137,6 +175,43 @@ class FC_Preference(Base):
     FC_Category = relationship(FC_Category)
 
 
+# Discussion
+class Discussion(Base):
+    __tablename__ = "discussion"
+    Discussion_ID = Column(Integer, primary_key=True)
+    Main_Discussion = Column(String(1000), nullable=False)
+    User_ID = Column(Integer, ForeignKey('user_info.User_ID'))
+    UserInfo = relationship(UserInfo)
+    Module_ID = Column(Integer, ForeignKey('module.Module_ID'))
+    Module = relationship(Module)
+
+    Time = Column(DateTime, server_default=func.now())
+
+    @property
+    def serialize(self):
+        return {
+            'discussionId': self.Discussion_ID,
+        }
+
+
+class DiscussionThread(Base):
+    __tablename__ = "discussion_thread"
+    Thread_ID = Column(Integer, primary_key=True)
+    Discussion_ID = Column(Integer, ForeignKey('discussion.Discussion_ID'))
+    Discussion = relationship(Discussion)
+    User_ID = Column(Integer, ForeignKey('user_info.User_ID'))
+    UserInfo = relationship(UserInfo)
+    Message = Column(String(10000), nullable=False)
+
+    Time = Column(DateTime, server_default=func.now())
+
+    @property
+    def serialize(self):
+        return {
+            'threadId': self.Thread_ID,
+            'threadContent': self.Message,
+            'createdBy': UserInfo.Username,
+        }
 
 
 engine = create_engine('sqlite:///getSatPro.db')
