@@ -2,9 +2,15 @@ from app import app
 from flask import abort, request, jsonify, g, url_for
 from flask_httpauth import HTTPBasicAuth
 from flask_login import current_user, login_user
-from app import session
+from app import session,  flask_bcrypt, jwt
 from app.models import UserInfo
-
+from flask_jwt_extended import(
+    create_access_token,
+    create_refresh_token,
+    jwt_required,
+    jwt_refresh_token_required,
+    get_jwt_identity
+)
 
 @app.route('/')
 @app.route('/index')
@@ -25,7 +31,7 @@ def register():
             abort(400)
 
     username = request.json.get('username')
-    password = request.json.get('password')
+    password = flask_bcrypt.generate_password_hash(request.json.get('password'))
     fname = request.json.get('fname')
     lname = request.json.get('lname')
     email = request.json.get('email')
@@ -54,6 +60,7 @@ def register():
 
 # Get users
 @app.route('/users/<int:id>')
+@jwt_required
 def get_user(id):
     user = session.query(UserInfo).filter_by(User_ID=id).one()
     print (user)
@@ -64,22 +71,50 @@ def get_user(id):
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.json
+    data = request.get_json()
+    #return data
+
+    if data is None:
+        abort(404)
+
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
     # whatever username is entered
+    username = data['username']
+    password = data['password']
     user = session.query(UserInfo).filter_by(Username=username).first()
-    if user is None or not user.check_password(password):
-        flash("invalid")
-        return redirect(url_for('login'))
+    #print (user.Login_password)
+    #return data
+    if user and flask_bcrypt.check_password_hash(user.Login_password, password):
+        access_token = create_access_token(identity=data)
+        refresh_token = create_refresh_token(identity=data)
+        del data['password']
+        data['token'] = access_token
+        data['refresh'] = refresh_token
+        return data
+        #return jsonify(data)
 
-    login_user(user, [form_data])
-
-    form = LoginForm()
-    return
+    else:
+        return jsonify({'Status':'Invalid'})
 
 
+@app.route('/refresh', methods=['POST'])
+@jwt_refresh_token_required
+def refresh():
+    current_user = get_jwt_identity()
+    ret = {
+        'token': create_access_token(identity=current_user)
+    }
+    return jsonify({'data':ret})
+
+
+@jwt.unauthorized_loader
+def unauthorized_response(callback):
+    return jsonify({
+        'message':'Missing Authorization header'
+    }
+    ),401
 # TODO
 """
 Implement Login from this - https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins
