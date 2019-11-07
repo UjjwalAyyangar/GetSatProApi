@@ -86,48 +86,78 @@ def get_user(id):
     return jsonify(data)
 
 
-@app.route('/api/add_module')
+@app.route('/api/add_module', methods=['POST'])
 @jwt_required
 def add_module():
     data = request.get_json()
     if data is None:
         abort(404)
 
-    mod_name = data['module_name']
-    new_module = Module(Module_Name=mod_name)
-    db.session.add(new_module)
-    db.session.commit()
-    return {
-        "Sucessfull": "Yes"
-    }
+    try:
+        mod_name = data['module_name']
+        new_module = Module(Module_Name=mod_name)
+        db.session.add(new_module)
+        db.session.commit()
+        return {
+            "Status": 200
+        }
+    except:
+        return {
+            "Status": 400
+        }
 
 
 # Exams
+# Create Exam Request
+{
+    "mod_id": 1,
+    "name": "random",
+    "exam": [
+        {
+            "question": "What is the answer of life?",
+            "correct_ans": "42",
+            "options": ["31", "0", "42"]
 
-@app.route('/api/create_exam')
+        },
+        {
+            "question": "Who is Arsenal's best manager",
+            "correct_ans": "Arsene Wenger",
+            "options": ["Arsene Wenger", "Unai Emery", "Herbery Chapman"]
+        }
+    ]
+}
+
+
+@app.route('/api/create_exam', methods=["POST"])
 @jwt_required
 def create_exam():
     user_type = current_user.UserRole.User_Type
+    print(user_type)
     res = {}
     if user_type == "Tutor":
         try:
             data = request.get_json()
             if data is None:
-                abort(404)
+                return {
+                    "Status": 400
+                }
 
             questions = data["exam"]
+            # print (questions[0])
             name = data["name"]
-            m_id = data["mod_id"]
+            print(name)
+            mod_id = data["mod_id"]
             for question in questions:
-                temp = {}
-                temp["correct_answer"] = question["correct_answer"]
-                temp["Question"] = question["Question"]
-
+                # print (question)
+                # temp = {}
+                # temp["correct_answer"] = question["correct_answer"]
+                # temp["Question"] = question["Question"]
+                options = question["options"]
                 new_question = ExamQuestion(
                     Question=question["question"],
-                    Option_1=question["first_option"],
-                    Option_2=question["second_option"],
-                    Option_3=question["third_option"],
+                    Option_1=options[0],
+                    Option_2=options[1],
+                    Option_3=options[2],
                     Correct_ans=question["correct_ans"]
                 )
 
@@ -137,9 +167,26 @@ def create_exam():
             new_exam = Exam(Exam_Name=name, Module_ID=mod_id)
             db.session.add(new_exam)
             db.session.commit()
-            return {"Status":200}
+            return {"Status": 200}
         except:
-            return {"Status":400}
+            # print("up")
+            return {"Status": 400}
+    return {
+        "Status": 400,
+        "Reason": "Only Tutors can create exams"
+    }
+
+@app.route('/api/get_exam', methods=["GET"])
+@jwt_required
+def get_exam():
+    data = request.get_json()
+    e_id = int(data['exam_id'])
+    exam = Exam.query.filter_by(Exam_ID=e_id).one()
+    print (exam.Questions.all())
+    return{
+        "Done":200
+    }
+
 
 @app.route('/api/get_exams')
 @jwt_required
@@ -152,9 +199,9 @@ def get_exams():
     module = Module.query.filter_by(Module_ID=mod_id)
 
     Exams = module.Exams
-    print (Exams)
+    print(Exams)
     return {
-        "s":"s"
+        "s": "s"
     }
 
 

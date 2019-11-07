@@ -2,7 +2,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 # from sqlalchemy.ext.declarative import declarative_base
 # from sqlalchemy.orm import relationship
 # from sqlalchemy import create_engine
-from datetime import timedelta
+from datetime import timedelta, datetime
 from app import db, login
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
@@ -19,17 +19,17 @@ class relationship():
         return db.relationship(to_Model,
                                backref=from_Model,
                                lazy='dynamic',
-                               #uselist=False
+                               # uselist=False
                                )
 
         return temp
 
     def one_to_many(self, from_Model, to_Model):
-        print(from_Model,to_Model)
+        print(from_Model, to_Model)
         return db.relationship(to_Model,
                                backref=from_Model,
                                lazy='dynamic',
-                               #uselist=False
+                               # uselist=False
                                )
 
 
@@ -59,7 +59,7 @@ class UserInfo(UserMixin, db.Model):
     Discussions = rel_obj.one_to_many('UserInfo', 'Discussion')  # 1 user can have many discussions
     Replies = rel_obj.one_to_many('UserInfo', 'DiscussionThread')  # 1 user can have many replies
 
-    Last_Login = Column(DateTime, server_default=func.now())
+    Last_Login = Column(db.DateTime, default=datetime.now())
     Login_password = Column(String(128))
 
     def get_id(self):
@@ -79,6 +79,7 @@ def load_user(id):
     user = session.query(UserInfo).filter_by(User_ID=int(id)).one()
     return user  # Assuming it returns the user
 """
+
 
 # Module
 
@@ -111,12 +112,14 @@ class Exam(db.Model):
     Exam_Name = Column(String(100), nullable=False)
 
     Questions = rel_obj.one_to_many('Exam', 'ExamQuestion')  # 1 exam has many questions
-    Published = Column(DateTime, server_default=func.now())
-    Expired = Column(DateTime, server_default=func.now()+timedelta(hours=24))
+    Published = Column(db.DateTime, default=datetime.now())
+    Expired = Column(db.DateTime, default=datetime.now() + timedelta(hours=24))
 
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
 
     Reports = rel_obj.one_to_many('Exam', 'StudentReport')  # 1 exam will have many reports
+
+
 """
 {
   "exam": [
@@ -142,6 +145,7 @@ class Exam(db.Model):
 }
 
 """
+
 
 # Report
 class StudentReport(db.Model):
@@ -186,7 +190,7 @@ class Discussion(db.Model):
 
     Replies = rel_obj.one_to_many('Discussion', 'DiscussionThread')  # 1 discussion can have many replies
 
-    Time = Column(DateTime, server_default=func.now())
+    Time = Column(DateTime, default=datetime.now())
 
 
 class DiscussionThread(db.Model):
@@ -194,7 +198,7 @@ class DiscussionThread(db.Model):
     Discussion_ID = Column(Integer, db.ForeignKey('discussion.Discussion_ID'))
     User_ID = Column(Integer, db.ForeignKey('user_info.User_ID'))
     Message = Column(String(10000), nullable=False)
-    Time = Column(DateTime, server_default=func.now())
+    Time = Column(DateTime, default=datetime.now())
 
 
 # engine = create_engine('sqlite:///getSatPro.db')
