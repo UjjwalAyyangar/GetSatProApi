@@ -2,8 +2,8 @@ from app import app
 from flask import abort, request, jsonify, g, url_for
 from flask_httpauth import HTTPBasicAuth
 from flask_login import current_user, login_user
-from app import session,  flask_bcrypt, jwt
-from app.models import UserInfo
+from app import db,  flask_bcrypt, jwt
+from app.models import *
 from flask_jwt_extended import(
     create_access_token,
     create_refresh_token,
@@ -37,7 +37,7 @@ def register():
     email = request.json.get('email')
     phone = request.json.get('phone')
     role_id = request.json.get('role_id')
-    group_id = request.json.get('group_id')
+
 
     new_user = UserInfo(
         Username=username,
@@ -46,12 +46,11 @@ def register():
         Last_Name=lname,
         Email=email,
         Phone=phone,
-        Role_ID=int(role_id),
-        Group_ID=int(group_id)
+        Role_ID=int(role_id)
     )
 
-    session.add(new_user)
-    session.commit()
+    db.session.add(new_user)
+    db.session.commit()
 
     return (jsonify(
         {'username': new_user.Username}
@@ -62,12 +61,38 @@ def register():
 @app.route('/users/<int:id>')
 @jwt_required
 def get_user(id):
-    user = session.query(UserInfo).filter_by(User_ID=id).one()
-    print (user)
+    user = UserInfo.query.get(id)
+
+    data = {}
+    #print (user.UserRole)
+    #return {"type":"asd"}
+    data['UserType'] = user.UserRole.User_Type
+    #data['Modules'] = user.
+    data['userInfo'] = {
+        'FirstName':user.First_Name,
+        'LastName':user.Last_Name,
+        'userId':user.User_ID,
+        'lastloggedin':user.Last_Login,
+    }
+    #print (user)
     if not user:
         abort(400)
-    return jsonify({'username': user.Username})
+    return jsonify(data)
 
+@app.route('/api/add_module')
+@jwt_required
+def add_module():
+    data = request.get_json()
+    if data is None:
+        abort(404)
+
+    mod_name = data['module_name']
+    new_module = Module(Module_Name=mod_name)
+    db.session.add(new_module)
+    db.session.commit()
+    return {
+        "Sucessfull":"Yes"
+    }
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -83,7 +108,7 @@ def login():
     # whatever username is entered
     username = data['username']
     password = data['password']
-    user = session.query(UserInfo).filter_by(Username=username).first()
+    user = UserInfo.query.filter_by(Username=username).first()
     #print (user.Login_password)
     #return data
     if user and flask_bcrypt.check_password_hash(user.Login_password, password):
@@ -92,8 +117,16 @@ def login():
         del data['password']
         data['token'] = access_token
         data['refresh'] = refresh_token
-        return data
-        #return jsonify(data)
+        data['UserType'] = user.UserRole.User_Type
+        # data['Modules'] = user.
+        data['userInfo'] = {
+            'FirstName': user.First_Name,
+            'LastName': user.Last_Name,
+            'userId': user.User_ID,
+            'lastloggedin': user.Last_Login,
+        }
+        #return data
+        return jsonify(data)
 
     else:
         return jsonify({'Status':'Invalid'})
