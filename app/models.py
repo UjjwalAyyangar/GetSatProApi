@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Float
 # from sqlalchemy.ext.declarative import declarative_base
 # from sqlalchemy.orm import relationship
 # from sqlalchemy import create_engine
@@ -99,12 +99,14 @@ class ExamQuestion(db.Model):
     Question_ID = Column(Integer, primary_key=True)
     Question = Column(String(80))
     # I think our db should just have the correct ans field
-    Option_1 = Column(Integer)
-    Option_2 = Column(Integer)
-    Option_3 = Column(Integer)
-    # Option_4 = Column(Integer)
-    Correct_ans = Column(Integer)
+    Option_1 = Column(String(100))
+    Option_2 = Column(String(100))
+    Option_3 = Column(String(100))
+    Option_4 = Column(String(100))
+    Correct_ans = Column(Integer, nullable=False)
     Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'))
+
+
 
 
 class Exam(db.Model):
@@ -151,13 +153,22 @@ class Exam(db.Model):
 class StudentReport(db.Model):
     Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
     Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'), primary_key=True)
-    Grade = Column(Integer)
+    Sheet_ID = Column(Integer, db.ForeignKey('student_answer_sheet.Sheet_ID'))
+    Grade = Column(Float)
 
 
-# class StudentAnswerSheet(db.Model):
-#    Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
-# UserInfo = relationship(UserInfo)
-#    Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'), primary_key=True)
+class StudentAnswerSheet(db.Model):
+    Sheet_ID = Column(Integer, primary_key=True)
+    Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'))
+    Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'))
+    Answers = rel_obj.one_to_many('StudentAnswerSheet','UserAnswer')
+
+class UserAnswer(db.Model):
+    # Answer_ID = db.Model(Integer, primary_key=True)
+    Sheet_ID = Column(Integer, db.ForeignKey('student_answer_sheet.Sheet_ID'))
+    Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
+    Question_ID = Column(Integer, db.ForeignKey('exam_question.Question_ID'), primary_key=True)
+    Ans = Column(Integer,nullable=False)
 
 
 # Flashcards

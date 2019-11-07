@@ -11,6 +11,7 @@ from flask_jwt_extended import (
     jwt_refresh_token_required,
     get_jwt_identity
 )
+from app.system import auto_grade
 
 
 @app.route('/')
@@ -145,15 +146,19 @@ def create_exam():
             questions = data["exam"]
             # print (questions[0])
             name = data["name"]
-            print(name)
+            # print(name)
             mod_id = data["mod_id"]
+
+            # create a new exam
+            new_exam = Exam(Exam_Name=name, Module_ID=mod_id)
+            db.session.add(new_exam)
+            db.session.commit()
+
+            # add questions to that exam
             for question in questions:
-                # print (question)
-                # temp = {}
-                # temp["correct_answer"] = question["correct_answer"]
-                # temp["Question"] = question["Question"]
                 options = question["options"]
                 new_question = ExamQuestion(
+                    Exam_ID=new_exam.Exam_ID,
                     Question=question["question"],
                     Option_1=options[0],
                     Option_2=options[1],
@@ -164,9 +169,6 @@ def create_exam():
                 db.session.add(new_question)
                 db.session.commit()
 
-            new_exam = Exam(Exam_Name=name, Module_ID=mod_id)
-            db.session.add(new_exam)
-            db.session.commit()
             return {"Status": 200}
         except:
             # print("up")
@@ -176,16 +178,95 @@ def create_exam():
         "Reason": "Only Tutors can create exams"
     }
 
+"""
 @app.route('/api/get_exam', methods=["GET"])
 @jwt_required
 def get_exam():
     data = request.get_json()
+    user_id = current_user.User_ID
     e_id = int(data['exam_id'])
     exam = Exam.query.filter_by(Exam_ID=e_id).one()
-    print (exam.Questions.all())
-    return{
-        "Done":200
+    print(exam.Questions.all())
+    return {
+        "Done": 200
     }
+"""
+
+@app.route('/api/view_grade', methods=["POST"])
+@jwt_required
+def view_grade():
+    data = request.get_json()
+    user_id = current_user.User_ID
+    exam_id = data["exam_id"]
+    exam = Exam.query.filter_by(
+        Exam_ID=exam_id
+    ).one()
+
+    report = StudentReport.query.filter_by(
+        Student_ID=user_id,
+        Exam_ID=exam_id
+    ).one()
+
+    return {
+        "exam_name":exam.Exam_Name,
+        "grade":report.Grade,
+        "status":200
+    }
+
+
+
+
+
+@app.route('/api/submit_exam',methods=["POST"])
+@jwt_required
+def submit_exam():
+    data = request.get_json()
+    user_id = current_user.User_ID
+    user_type = current_user.UserRole.User_Type
+
+    if user_type == "Student":
+        exam_id = data["exam_id"]
+        exam = Exam.query.filter_by(Exam_ID=exam_id).one()
+        sub = data["sub"]
+        grade = auto_grade(exam, sub)
+
+        # create an answerSheet
+        new_ans_sheet = StudentAnswerSheet(
+            Student_ID=user_id,
+            Exam_ID=exam_id
+        )
+        db.session.add(new_ans_sheet)
+        db.session.commit()
+
+        for answer in sub:
+            # add answer to the UserAnswer table
+            new_ans = UserAnswer(
+                Student_ID=user_id,
+                Question_ID=answer['ques_id'],
+                Ans=answer['ans']
+            )
+            # Add answers to the sheet
+            new_ans_sheet.Answers.append(new_ans)
+
+        # create a new student report
+        new_report = StudentReport(
+            Student_ID=user_id,
+            Exam_ID=exam_id,
+            Sheet_ID=new_ans_sheet.Sheet_ID,
+            Grade=grade
+        )
+        db.session.add(new_report)
+        db.session.commit()
+
+        return {
+            "Status": 200
+        }
+
+
+    else:
+        return {
+            "Status": 400
+        }
 
 
 @app.route('/api/get_exams')
@@ -198,7 +279,16 @@ def get_exams():
     user = UserInfo.query.filter_by(User_ID=user_id)
     module = Module.query.filter_by(Module_ID=mod_id)
 
-    Exams = module.Exams
+    Exams = module.Exams.all()
+
+    data = {}
+    data["exams"] = []
+    for exam in Exams:
+        temp = {
+            "exam_id": exam.Exam_ID,
+            "exam_name": exam.Exam_Name,
+
+        }
     print(Exams)
     return {
         "s": "s"
