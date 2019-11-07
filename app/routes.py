@@ -214,9 +214,6 @@ def view_grade():
     }
 
 
-
-
-
 @app.route('/api/submit_exam',methods=["POST"])
 @jwt_required
 def submit_exam():
@@ -306,7 +303,11 @@ def login():
         abort(404)
 
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return {
+            "Status":200,
+            "Message":"User already logged in."
+        }
+
 
     # whatever username is entered
     username = data['username']
@@ -357,7 +358,10 @@ def unauthorized_response(callback):
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return {
+        "Status":200,
+        "Message": "Logged out successfully"
+    }
 
 
 # TODO
