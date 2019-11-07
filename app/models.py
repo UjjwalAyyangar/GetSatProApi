@@ -2,6 +2,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 # from sqlalchemy.ext.declarative import declarative_base
 # from sqlalchemy.orm import relationship
 # from sqlalchemy import create_engine
+from datetime import timedelta
 from app import db, login
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
@@ -61,6 +62,9 @@ class UserInfo(UserMixin, db.Model):
     Last_Login = Column(DateTime, server_default=func.now())
     Login_password = Column(String(128))
 
+    def get_id(self):
+        return self.User_ID
+
     def set_password(self, password):
         self.Login_password_hash = generate_password_hash(password)
 
@@ -69,11 +73,12 @@ class UserInfo(UserMixin, db.Model):
 
 
 # Used by the flask login to load the user
+"""
 @login.user_loader
 def load_user(id):
     user = session.query(UserInfo).filter_by(User_ID=int(id)).one()
     return user  # Assuming it returns the user
-
+"""
 
 # Module
 
@@ -92,9 +97,11 @@ class Module(db.Model):
 class ExamQuestion(db.Model):
     Question_ID = Column(Integer, primary_key=True)
     Question = Column(String(80))
+    # I think our db should just have the correct ans field
     Option_1 = Column(Integer)
     Option_2 = Column(Integer)
     Option_3 = Column(Integer)
+    # Option_4 = Column(Integer)
     Correct_ans = Column(Integer)
     Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'))
 
@@ -104,13 +111,37 @@ class Exam(db.Model):
     Exam_Name = Column(String(100), nullable=False)
 
     Questions = rel_obj.one_to_many('Exam', 'ExamQuestion')  # 1 exam has many questions
-    Published = Column(Integer)
-    Expired = Column(Integer)
+    Published = Column(DateTime, server_default=func.now())
+    Expired = Column(DateTime, server_default=func.now()+timedelta(hours=24))
 
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
 
     Reports = rel_obj.one_to_many('Exam', 'StudentReport')  # 1 exam will have many reports
+"""
+{
+  "exam": [
+    {
+      "correctAnswer": "Second Option",
+      "Question": "This is the first question",
+      "options": [
+        "First option",
+        "Second Option",
+        "Third Option"
+      ]
+    },
+    {
+      "correctAnswer": "First Option",
+      "Question": "This is the first question",
+      "options": [
+        "First option",
+        "Second Option",
+        "Third Option"
+      ]
+    }
+  ]
+}
 
+"""
 
 # Report
 class StudentReport(db.Model):
