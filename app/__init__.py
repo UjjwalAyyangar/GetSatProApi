@@ -18,7 +18,10 @@ from flask_bcrypt import Bcrypt
 app = Flask(__name__)
 app.config.from_object(Config)
 
+
 db = SQLAlchemy(app)
+
+migrate =Migrate(app,db)
 
 flask_bcrypt = Bcrypt(app)
 jwt = JWTManager(app)

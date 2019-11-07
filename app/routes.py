@@ -53,9 +53,11 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    return (jsonify(
-        {'username': new_user.Username}
-    ), 201)
+    return {
+            'Status': 200,
+            'Message': "User created successfully"
+        }
+
 
 
 @login.user_loader
