@@ -40,7 +40,7 @@ rel_obj = relationship()
 
 class UserRole(db.Model):
     Role_ID = Column(Integer, primary_key=True)
-    User_Type = Column(String(50))
+    User_Type = Column(String(50), unique=True)
     UserInfo = rel_obj.one_to_many('UserRole', 'UserInfo')  # A user role can point to many users
 
 
@@ -48,9 +48,9 @@ class UserInfo(UserMixin, db.Model):
     User_ID = Column(Integer, primary_key=True)
     First_Name = Column(String(250), nullable=False)
     Last_Name = Column(String(250), nullable=False)
-    Username = Column(String(250), nullable=False)
-    Email = Column(String(400), nullable=False)
-    Phone = Column(String(20), nullable=False)
+    Username = Column(String(250), nullable=False, unique=True)
+    Email = Column(String(400), nullable=False, unique=True)
+    Phone = Column(String(20), nullable=False, unique=True)
 
     Role_ID = Column(Integer, db.ForeignKey('user_role.Role_ID'))
 
@@ -87,7 +87,7 @@ def load_user(id):
 class Module(db.Model):
     # __tablename__ = "module"
     Module_ID = Column(Integer, primary_key=True)
-    Module_Name = Column(String(100), nullable=False)
+    Module_Name = Column(String(100), nullable=False, unique=True)
 
     Exams = rel_obj.one_to_many('Module', 'Exam')  # 1 module will have many exams
     Flashcards = rel_obj.one_to_many('Module', 'FlashcardSet')  # 1 module will have many flashcards

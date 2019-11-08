@@ -24,14 +24,18 @@ def index():
 # User Registration
 @app.route('/register', methods=['POST'])
 def register():
+
     admin_check = is_User("Admin")
-    if admin_check != 200:
-        res = ErrorResponse(admin_check)
+    if current_user.is_authenticated:
+        if admin_check != 200:
+            res = ErrorResponse(admin_check)
 
-        if admin_check == 401:
-            res.msg = "Only Admins can make this request"
+            if admin_check == 401:
+                res.msg = "Only Admins can add new users to the system."
 
-        return res.content()
+            return res
+
+
 
     data = request.get_json()
 
@@ -58,7 +62,7 @@ def load_user(id):
 # Get users
 @app.route('/users/<int:id>')
 @jwt_required
-def get_user(id):
+def show_user(id):
     user = UserInfo.query.get(id)
     if not user:
         res = ErrorResponse(404)
@@ -85,6 +89,19 @@ def add_module():
         "mod_name" : "Maths"
     }
     """
+
+    # Only an admin is allowed to add new modules
+
+    admin_check = is_User("Admin")
+
+    if admin_check!=200:
+        res = ErrorResponse(admin_check)
+
+        if admin_check==401:
+            res.msg = "Only an admin is allowed to add new modules"
+
+        return res.content()
+
     data = request.get_json()
     if data is None:
         abort(404)
@@ -98,8 +115,10 @@ def add_module():
 
         return res.content()
 
-    except:
+    except Exception as e:
+        #print(e)
         res = ErrorResponse(400)
+        return res.content()
 
 
 # Exams
@@ -153,6 +172,7 @@ def create_exam():
 def view_grade():
     data = request.get_json()
 
+    #print(is_User("Student"), current_user.UserRole.User_Type)
     if is_User("Student") == 200:
         student_id = current_user.User_ID
     else:
@@ -164,15 +184,31 @@ def view_grade():
 
     exam = get_exam(data["exam_id"])
 
+    exam_name = "NA"
+    if exam:
+        exam_name = exam.Exam_Name
+
+    grade = "NA"
+
     report = get_report(student_id, data["exam_id"])
+    if report:
+        grade = report.Grade
 
     res = Response(
         200,
         "Grades displayed successfully"
     )
+
+
     ret = res.content()
-    ret["exam_name"] = exam.Exam_Name
-    ret["grade"] = report.Grade
+
+    if not exam:
+        ret["message"] = "No such exam exists"
+    elif not report:
+        ret["message"] = "The user has not given this exam, yet."
+
+    ret["exam_name"] = exam_name
+    ret["grade"] = grade
 
     return ret
 
@@ -206,7 +242,7 @@ def submit_exam():
     for ans in sub:
         _ = create_ans({
             "student_id": student_id,
-            "question_id": ans["ques_id"],
+            "ques_id": ans["ques_id"],
             "ans": ans["ans"]
         }, sheet=new_ans_sheet)
 
@@ -275,7 +311,10 @@ def login():
             200,
             "User already logged in"
         )
-        return res.content()
+        username = current_user.Username
+        ret = res.content()
+        ret['username'] = username
+        return ret
 
 
     username = data['username']
@@ -335,6 +374,8 @@ def logout():
             400,
             "Already logged out i.e. no user is logged in."
         )
+
+
 
         return res.content()
 

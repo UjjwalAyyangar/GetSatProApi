@@ -1,16 +1,25 @@
 # The data access layer
+
+# Some of these methods could have been written in models
+# but I wanted these separate. For better code organization.
 from app.models import *
-from app import db
+from app import db, flask_bcrypt
+import sqlalchemy
 
 
 def get_user(user_id):
-    return UserInfo.query.filter_by(User_ID=user_id).one()
+    try:
+        return UserInfo.query.filter_by(User_ID=user_id).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
 
 
 def create_user(data):
+    pwd = flask_bcrypt.generate_password_hash(data.get('password'))
+    print(pwd)
     new_user = UserInfo(
         Username=data["username"],
-        Login_password=data["password"],
+        Login_password=pwd,
         First_Name=data["fname"],
         Last_Name=data["lname"],
         Email=data["email"],
@@ -18,15 +27,19 @@ def create_user(data):
         Role_ID=int(data["role_id"])
     )
 
+
     db.session.add(new_user)
     db.session.commit()
-
+    print(new_user)
+    print("Created")
     return new_user
 
 
 def get_module(mod_id):
-    return Module.query.filter_by(Module_ID=mod_id)
-
+    try:
+        return Module.query.filter_by(Module_ID=mod_id)
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
 
 def create_module(data):
     new_module = Module(
@@ -38,9 +51,13 @@ def create_module(data):
 
 
 def get_exam(id):
-    return Exam.query.filter_by(
+    try:
+        return Exam.query.filter_by(
         Exam_ID=id
-    ).one()
+        ).one()
+
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
 
 
 def create_exam(data):
@@ -83,7 +100,7 @@ def create_question(data):
 
 
 def create_ans_sheet(data):
-    new_ans_sheet = UserAnswer(
+    new_ans_sheet = StudentAnswerSheet(
         Student_ID=data["student_id"],
         Exam_ID=data["exam_id"]
     )
@@ -110,10 +127,13 @@ def create_ans(data, sheet=None):
 
 
 def get_report(student_id, exam_id):
-    return StudentReport.query.filter_by(
-        Student_ID=student_id,
-        Exam_ID=exam_id
-    ).one()
+    try :
+        return StudentReport.query.filter_by(
+            Student_ID=student_id,
+            Exam_ID=exam_id
+        ).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
 
 
 def create_report(data):
