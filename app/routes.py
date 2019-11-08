@@ -331,6 +331,8 @@ def login():
             'userId': user.User_ID,
             'lastloggedin': user.Last_Login,
         }
+
+        data["Status"] = 200
         login_user(user)
         # return data
         return jsonify(data)
@@ -358,6 +360,7 @@ def unauthorized_response(callback):
 
 
 @app.route('/logout')
+@jwt_required
 def logout():
     logout_user()
     return {
