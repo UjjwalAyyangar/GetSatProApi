@@ -7,6 +7,24 @@ from app import db, flask_bcrypt
 import sqlalchemy
 
 
+def exists(name, obj, res):
+    if obj:
+        return res
+    else:
+        res.code = 400
+        res.msg = "Bad Request. Probably {} already exists".format(name)
+        return res
+
+
+def insert(field):
+    try:
+        db.session.add(field)
+        db.session.commit()
+        return field
+    except sqlalchemy.exc.IntegrityError:
+        return None
+
+
 def get_user(user_id):
     try:
         return UserInfo.query.filter_by(User_ID=user_id).one()
@@ -27,12 +45,7 @@ def create_user(data):
         Role_ID=int(data["role_id"])
     )
 
-
-    db.session.add(new_user)
-    db.session.commit()
-    print(new_user)
-    print("Created")
-    return new_user
+    return insert(new_user)
 
 
 def get_module(mod_id):
@@ -41,19 +54,19 @@ def get_module(mod_id):
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 
+
 def create_module(data):
     new_module = Module(
         Module_Name=data["mod_name"]
     )
-    db.session.add(new_module)
-    db.session.commit()
-    return new_module
+
+    return insert(new_module)
 
 
 def get_exam(id):
     try:
         return Exam.query.filter_by(
-        Exam_ID=id
+            Exam_ID=id
         ).one()
 
     except sqlalchemy.orm.exc.NoResultFound:
@@ -65,22 +78,25 @@ def create_exam(data):
         Exam_Name=data["name"],
         Module_ID=data["mod_id"]
     )
-    db.session.add(new_exam)
-    db.session.commit()
+
+    new_exam = insert(new_exam)
 
     # add questions to the exam
     questions = data["questions"]
 
-    for question in questions:
-        temp_data = {
-            "exam_id": new_exam.Exam_ID,
-            "question": question["question"],
-            "options": question["options"],
-            "correct_ans": question["correct_ans"]
-        }
-        create_question(temp_data)
+    if new_exam:
+        for question in questions:
+            temp_data = {
+                "exam_id": new_exam.Exam_ID,
+                "question": question["question"],
+                "options": question["options"],
+                "correct_ans": question["correct_ans"]
+            }
+            _ = create_question(temp_data)
 
-    return new_exam
+        return new_exam
+    else:
+        return None
 
 
 def create_question(data):
@@ -93,10 +109,7 @@ def create_question(data):
         Correct_ans=data["correct_ans"]
     )
 
-    db.session.add(new_question)
-    db.session.commit()
-
-    return new_question
+    return insert(new_question)
 
 
 def create_ans_sheet(data):
@@ -105,10 +118,7 @@ def create_ans_sheet(data):
         Exam_ID=data["exam_id"]
     )
 
-    db.session.add(new_ans_sheet)
-    db.session.commit()
-
-    return new_ans_sheet
+    return insert(new_ans_sheet)
 
 
 def create_ans(data, sheet=None):
@@ -120,14 +130,13 @@ def create_ans(data, sheet=None):
     if sheet:
         sheet.Answers.append(new_ans)
     else:
-        db.session.add(new_ans)
-        db.session.commit()
+        new_ans = insert(new_ans)
 
     return new_ans
 
 
 def get_report(student_id, exam_id):
-    try :
+    try:
         return StudentReport.query.filter_by(
             Student_ID=student_id,
             Exam_ID=exam_id
@@ -144,6 +153,4 @@ def create_report(data):
         Grade=data["grade"]
     )
 
-    db.session.add(new_report)
-    db.session.commit()
-    return new_report
+    return insert(new_report)

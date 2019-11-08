@@ -24,7 +24,6 @@ def index():
 # User Registration
 @app.route('/register', methods=['POST'])
 def register():
-
     admin_check = is_User("Admin")
     if current_user.is_authenticated:
         if admin_check != 200:
@@ -35,20 +34,19 @@ def register():
 
             return res.content()
 
-
-
     data = request.get_json()
 
     if not complete_request:
         res = ErrorResponse(405)
         return res.content()
 
-    _ = create_user(data)
+    user = create_user(data)
 
     res = Response(
         200,
         "User created successfully"
     )
+    res = exists('User', user, res)
 
     return res.content()
 
@@ -94,10 +92,10 @@ def add_module():
 
     admin_check = is_User("Admin")
 
-    if admin_check!=200:
+    if admin_check != 200:
         res = ErrorResponse(admin_check)
 
-        if admin_check==401:
+        if admin_check == 401:
             res.msg = "Only an admin is allowed to add new modules"
 
         return res.content()
@@ -107,16 +105,18 @@ def add_module():
         abort(404)
 
     try:
-        _ = create_module(data)
+        module = create_module(data)
         res = Response(
             200,
             "Module added successfully"
         )
 
+        res = exists('Module', module, res)
+
         return res.content()
 
     except Exception as e:
-        #print(e)
+        # print(e)
         res = ErrorResponse(400)
         return res.content()
 
@@ -158,11 +158,12 @@ def create_exam():
 
         return res.content()
 
-    _ = create_exam(data)
+    exam = create_exam(data)
     res = Response(
         200,
         "Exam was created successfully"
     )
+    res = exists('Exam', exam, res)
 
     return res.content()
 
@@ -172,7 +173,7 @@ def create_exam():
 def view_grade():
     data = request.get_json()
 
-    #print(is_User("Student"), current_user.UserRole.User_Type)
+    # print(is_User("Student"), current_user.UserRole.User_Type)
     if is_User("Student") == 200:
         student_id = current_user.User_ID
     else:
@@ -198,7 +199,6 @@ def view_grade():
         200,
         "Grades displayed successfully"
     )
-
 
     ret = res.content()
 
@@ -232,34 +232,41 @@ def submit_exam():
     sub = data["sub"]
     grade = auto_grade(exam, sub)
 
-    # create an answerSheet
-    new_ans_sheet = create_ans_sheet({
-        "student_id": student_id,
-        "exam_id": data["exam_id"]
-    })
-
-    # Create answers and add them into sheets
-    for ans in sub:
-        _ = create_ans({
+    try:
+        # create an answerSheet
+        new_ans_sheet = create_ans_sheet({
             "student_id": student_id,
-            "ques_id": ans["ques_id"],
-            "ans": ans["ans"]
-        }, sheet=new_ans_sheet)
+            "exam_id": data["exam_id"]
+        })
 
-    # Create report
-    _ = create_report({
-        "student_id": student_id,
-        "exam_id": exam_id,
-        "sheet_id": new_ans_sheet.Sheet_ID,
-        "grade": grade
-    })
+        # Create answers and add them into sheets
+        for ans in sub:
+            _ = create_ans({
+                "student_id": student_id,
+                "ques_id": ans["ques_id"],
+                "ans": ans["ans"]
+            }, sheet=new_ans_sheet)
 
-    res = Response(
-        200,
-        "Exam submitted successfully"
-    )
+        # Create report
+        _ = create_report({
+            "student_id": student_id,
+            "exam_id": exam_id,
+            "sheet_id": new_ans_sheet.Sheet_ID,
+            "grade": grade
+        })
 
-    return res.content()
+        res = Response(
+            200,
+            "Exam submitted successfully"
+        )
+
+        return res.content()
+    except:
+        res = Response(
+            400,
+            "The exam is already submitted"
+        )
+        return res.content()
 
 
 # Exam available to a user in a selected module
@@ -316,7 +323,6 @@ def login():
         ret['username'] = username
         return ret
 
-
     username = data['username']
 
     del data["username"]
@@ -366,16 +372,13 @@ def unauthorized_response(callback):
 
 
 @app.route('/logout')
-#@jwt_required
+# @jwt_required
 def logout():
-
     if not current_user.is_authenticated:
         res = Response(
             400,
             "Already logged out i.e. no user is logged in."
         )
-
-
 
         return res.content()
 
