@@ -53,10 +53,12 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
+    logout_user()
     return {
             'Status': 200,
             'Message': "User created successfully"
         }
+
 
 
 
