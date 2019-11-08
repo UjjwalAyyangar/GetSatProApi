@@ -1,1 +1,1 @@
-web: gunicorn main:app --log-level debug; python db_setup.py
+flask db init; flask db migrate; flask db upgrade; web: gunicorn main:app --log-level debug;
