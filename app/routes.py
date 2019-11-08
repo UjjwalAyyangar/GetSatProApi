@@ -33,7 +33,7 @@ def register():
             if admin_check == 401:
                 res.msg = "Only Admins can add new users to the system."
 
-            return res
+            return res.content()
 
 
 
