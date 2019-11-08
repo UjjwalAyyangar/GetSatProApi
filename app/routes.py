@@ -11,7 +11,8 @@ from flask_jwt_extended import (
     jwt_refresh_token_required,
     get_jwt_identity
 )
-from app.system import auto_grade
+from app.system import *
+from app.dac import *
 
 
 @app.route('/')
@@ -23,43 +24,29 @@ def index():
 # User Registration
 @app.route('/register', methods=['POST'])
 def register():
-    # print (type(request.get_json()))
-    # return jsonify(request.get_json())
+    admin_check = is_User("Admin")
+    if admin_check != 200:
+        res = ErrorResponse(admin_check)
+
+        if admin_check == 401:
+            res.msg = "Only Admins can make this request"
+
+        return res.content()
 
     data = request.get_json()
 
-    for key in request.get_json():
-        if data[key] == None:
-            abort(400)
+    if not complete_request:
+        res = ErrorResponse(405)
+        return res.content()
 
-    username = request.json.get('username')
-    password = flask_bcrypt.generate_password_hash(request.json.get('password'))
-    fname = request.json.get('fname')
-    lname = request.json.get('lname')
-    email = request.json.get('email')
-    phone = request.json.get('phone')
-    role_id = request.json.get('role_id')
+    _ = create_user(data)
 
-    new_user = UserInfo(
-        Username=username,
-        Login_password=password,
-        First_Name=fname,
-        Last_Name=lname,
-        Email=email,
-        Phone=phone,
-        Role_ID=int(role_id)
+    res = Response(
+        200,
+        "User created successfully"
     )
 
-    db.session.add(new_user)
-    db.session.commit()
-
-    logout_user()
-    return {
-            'Status': 200,
-            'Message': "User created successfully"
-        }
-
-
+    return res.content()
 
 
 @login.user_loader
@@ -73,51 +60,60 @@ def load_user(id):
 @jwt_required
 def get_user(id):
     user = UserInfo.query.get(id)
+    if not user:
+        res = ErrorResponse(404)
+        return res.content()
 
     data = {}
-    # print (user.UserRole)
-    # return {"type":"asd"}
+
     data['UserType'] = user.UserRole.User_Type
-    # data['Modules'] = user.
     data['userInfo'] = {
         'FirstName': user.First_Name,
         'LastName': user.Last_Name,
         'userId': user.User_ID,
         'lastloggedin': user.Last_Login,
     }
-    # print (user)
-    if not user:
-        abort(400)
     return jsonify(data)
 
 
 @app.route('/api/add_module', methods=['POST'])
 @jwt_required
 def add_module():
+    """
+    api structure :
+    {
+        "mod_name" : "Maths"
+    }
+    """
     data = request.get_json()
     if data is None:
         abort(404)
 
     try:
-        mod_name = data['module_name']
-        new_module = Module(Module_Name=mod_name)
-        db.session.add(new_module)
-        db.session.commit()
-        return {
-            "Status": 200
-        }
+        _ = create_module(data)
+        res = Response(
+            200,
+            "Module added successfully"
+        )
+
+        return res.content()
+
     except:
-        return {
-            "Status": 400
-        }
+        res = ErrorResponse(400)
 
 
 # Exams
 # Create Exam Request
-{
+
+@app.route('/api/create_exam', methods=["POST"])
+@jwt_required
+def create_exam():
+    """
+    api_structure :
+    {
     "mod_id": 1,
     "name": "random",
-    "exam": [
+    "questions": [
         {
             "question": "What is the answer of life?",
             "correct_ans": "42",
@@ -132,168 +128,136 @@ def add_module():
     ]
 }
 
-
-@app.route('/api/create_exam', methods=["POST"])
-@jwt_required
-def create_exam():
-    user_type = current_user.UserRole.User_Type
-    print(user_type)
-    res = {}
-    if user_type == "Tutor":
-        try:
-            data = request.get_json()
-            if data is None:
-                return {
-                    "Status": 400
-                }
-
-            questions = data["exam"]
-            # print (questions[0])
-            name = data["name"]
-            # print(name)
-            mod_id = data["mod_id"]
-
-            # create a new exam
-            new_exam = Exam(Exam_Name=name, Module_ID=mod_id)
-            db.session.add(new_exam)
-            db.session.commit()
-
-            # add questions to that exam
-            for question in questions:
-                options = question["options"]
-                new_question = ExamQuestion(
-                    Exam_ID=new_exam.Exam_ID,
-                    Question=question["question"],
-                    Option_1=options[0],
-                    Option_2=options[1],
-                    Option_3=options[2],
-                    Correct_ans=question["correct_ans"]
-                )
-
-                db.session.add(new_question)
-                db.session.commit()
-
-            return {"Status": 200}
-        except:
-            # print("up")
-            return {"Status": 400}
-    return {
-        "Status": 400,
-        "Reason": "Only Tutors can create exams"
-    }
-
-"""
-@app.route('/api/get_exam', methods=["GET"])
-@jwt_required
-def get_exam():
+    """
     data = request.get_json()
-    user_id = current_user.User_ID
-    e_id = int(data['exam_id'])
-    exam = Exam.query.filter_by(Exam_ID=e_id).one()
-    print(exam.Questions.all())
-    return {
-        "Done": 200
-    }
-"""
+    ad_tut_check = is_User("Admin") or is_User("Tutor")
+    if ad_tut_check != 200:
+        res = ErrorResponse(ad_tut_check)
+
+        if ad_tut_check == 401:
+            res.msg = "Only Admins or Tutors can make this request"
+
+        return res.content()
+
+    _ = create_exam(data)
+    res = Response(
+        200,
+        "Exam was created successfully"
+    )
+
+    return res.content()
+
 
 @app.route('/api/view_grade', methods=["POST"])
 @jwt_required
 def view_grade():
     data = request.get_json()
-    user_id = current_user.User_ID
-    exam_id = data["exam_id"]
-    exam = Exam.query.filter_by(
-        Exam_ID=exam_id
-    ).one()
 
-    report = StudentReport.query.filter_by(
-        Student_ID=user_id,
-        Exam_ID=exam_id
-    ).one()
+    if is_User("Student") == 200:
+        student_id = current_user.User_ID
+    else:
+        try:
+            student_id = data["student_id"]
+        except:
+            res = ErrorResponse(400)
+            return res.content()
 
-    return {
-        "exam_name":exam.Exam_Name,
-        "grade":report.Grade,
-        "status":200
-    }
+    exam = get_exam(data["exam_id"])
+
+    report = get_report(student_id, data["exam_id"])
+
+    res = Response(
+        200,
+        "Grades displayed successfully"
+    )
+    ret = res.content()
+    ret["exam_name"] = exam.Exam_Name
+    ret["grade"] = report.Grade
+
+    return ret
 
 
-@app.route('/api/submit_exam',methods=["POST"])
+@app.route('/api/submit_exam', methods=["POST"])
 @jwt_required
 def submit_exam():
+    stud_check = is_User("Student")
+    if stud_check != 200:
+        res = ErrorResponse(401)
+        if stud_check == 401:
+            res.msg = "Only a student can submit an exam."
+
+        return res.content()
+
     data = request.get_json()
-    user_id = current_user.User_ID
-    user_type = current_user.UserRole.User_Type
+    student_id = current_user.User_ID
 
-    if user_type == "Student":
-        exam_id = data["exam_id"]
-        exam = Exam.query.filter_by(Exam_ID=exam_id).one()
-        sub = data["sub"]
-        grade = auto_grade(exam, sub)
+    exam_id = data["exam_id"]
+    exam = Exam.query.filter_by(Exam_ID=exam_id).one()
+    sub = data["sub"]
+    grade = auto_grade(exam, sub)
 
-        # create an answerSheet
-        new_ans_sheet = StudentAnswerSheet(
-            Student_ID=user_id,
-            Exam_ID=exam_id
-        )
-        db.session.add(new_ans_sheet)
-        db.session.commit()
+    # create an answerSheet
+    new_ans_sheet = create_ans_sheet({
+        "student_id": student_id,
+        "exam_id": data["exam_id"]
+    })
 
-        for answer in sub:
-            # add answer to the UserAnswer table
-            new_ans = UserAnswer(
-                Student_ID=user_id,
-                Question_ID=answer['ques_id'],
-                Ans=answer['ans']
-            )
-            # Add answers to the sheet
-            new_ans_sheet.Answers.append(new_ans)
+    # Create answers and add them into sheets
+    for ans in sub:
+        _ = create_ans({
+            "student_id": student_id,
+            "question_id": ans["ques_id"],
+            "ans": ans["ans"]
+        }, sheet=new_ans_sheet)
 
-        # create a new student report
-        new_report = StudentReport(
-            Student_ID=user_id,
-            Exam_ID=exam_id,
-            Sheet_ID=new_ans_sheet.Sheet_ID,
-            Grade=grade
-        )
-        db.session.add(new_report)
-        db.session.commit()
+    # Create report
+    _ = create_report({
+        "student_id": student_id,
+        "exam_id": exam_id,
+        "sheet_id": new_ans_sheet.Sheet_ID,
+        "grade": grade
+    })
 
-        return {
-            "Status": 200
-        }
+    res = Response(
+        200,
+        "Exam submitted successfully"
+    )
+
+    return res.content()
 
 
-    else:
-        return {
-            "Status": 400
-        }
-
-
+# Exam available to a user in a selected module
 @app.route('/api/get_exams')
 @jwt_required
 def get_exams():
-    data = request.get_json()
-    user_id = int(data["user_id"])
-    mod_id = int(data["selected_mod"])
+    if not current_user.is_authenticated:
+        res = ErrorResponse(401)
+        return res.content()
 
-    user = UserInfo.query.filter_by(User_ID=user_id)
-    module = Module.query.filter_by(Module_ID=mod_id)
+    data = request.get_json()
+
+    module = get_module(data["mod_id"]).one()
 
     Exams = module.Exams.all()
 
-    data = {}
-    data["exams"] = []
+    exam_list = []
+
     for exam in Exams:
         temp = {
             "exam_id": exam.Exam_ID,
             "exam_name": exam.Exam_Name,
 
         }
-    print(Exams)
-    return {
-        "s": "s"
-    }
+        exam_list.append(temp)
+
+    res = Response(
+        200,
+        "Fetched exams successfully"
+    )
+
+    ret = res.content()
+    ret["exams"] = exam_list
+    return ret
 
 
 # /users/<int:id>
@@ -307,40 +271,43 @@ def login():
         abort(404)
 
     if current_user.is_authenticated:
-        return {
-            "Status":200,
-            "Message":"User already logged in."
-        }
+        res = Response(
+            200,
+            "User already logged in"
+        )
+        return res.content()
 
 
-    # whatever username is entered
     username = data['username']
+
+    del data["username"]
     password = data['password']
     user = UserInfo.query.filter_by(Username=username).first()
-    # print (user.Login_password)
-    # return data
     if user and flask_bcrypt.check_password_hash(user.Login_password, password):
         access_token = create_access_token(identity=data)
         refresh_token = create_refresh_token(identity=data)
         del data['password']
         data['token'] = access_token
         data['refresh'] = refresh_token
-        data['UserType'] = user.UserRole.User_Type
-        # data['Modules'] = user.
-        data['userInfo'] = {
-            'FirstName': user.First_Name,
-            'LastName': user.Last_Name,
-            'userId': user.User_ID,
-            'lastloggedin': user.Last_Login,
+        data['user_info'] = {
+            "user_type": user.UserRole.User_Type,
+            'first_name': user.First_Name,
+            'last_name': user.Last_Name,
+            'user_id': user.User_ID,
+            'last_logged_in': user.Last_Login,
+            "username": username
         }
 
         data["Status"] = 200
+        data["message"] = "User logged in successfully"
         login_user(user)
-        # return data
         return jsonify(data)
 
     else:
-        return jsonify({'Status': 'Invalid'})
+        return jsonify({
+            'Status': 401,
+            'message': "Invalid credentials"
+        })
 
 
 @app.route('/refresh', methods=['POST'])
@@ -355,20 +322,32 @@ def refresh():
 
 @jwt.unauthorized_loader
 def unauthorized_response(callback):
-    return jsonify({
-        'message': 'Missing Authorization header'
-    }
-    ), 401
+    res = ErrorResponse(401)
+    return res.content()
 
 
 @app.route('/logout')
-@jwt_required
+#@jwt_required
 def logout():
+
+    if not current_user.is_authenticated:
+        res = Response(
+            400,
+            "Already logged out i.e. no user is logged in."
+        )
+
+        return res.content()
+
+    res = Response(
+        200,
+        "Logged out successfully"
+    )
+
+    ret = res.content()
+    ret["user_id"] = current_user.User_ID
     logout_user()
-    return {
-        "Status":200,
-        "Message": "Logged out successfully"
-    }
+
+    return ret
 
 
 # TODO
