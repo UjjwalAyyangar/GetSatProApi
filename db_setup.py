@@ -12,4 +12,8 @@ Student_Role = UserRole(User_Type='Student')
 Tutor_Role = UserRole(User_Type='Tutor')
 Admin_Role = UserRole(User_Type='Admin')
 
+
+#def setup():
 add_fields([Student_Role, Tutor_Role, Admin_Role])
+
+

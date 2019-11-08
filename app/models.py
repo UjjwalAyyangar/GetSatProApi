@@ -214,4 +214,4 @@ class DiscussionThread(db.Model):
 
 # engine = create_engine('sqlite:///getSatPro.db')
 # Base.metadata.create_all(engine)
-db.create_all()
+# db.create_all()
