@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, asc
 from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask_cors import CORS
 
 #engine = create_engine('sqlite:///getSatPro.db')
 #DBSession = sessionmaker(bind=engine)
@@ -18,7 +19,7 @@ from flask_bcrypt import Bcrypt
 app = Flask(__name__)
 app.config.from_object(Config)
 
-
+CORS(app)
 db = SQLAlchemy(app)
 
 migrate =Migrate(app,db)
