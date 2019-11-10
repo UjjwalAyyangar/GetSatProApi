@@ -1,5 +1,5 @@
 from app import app
-from flask import abort, request, jsonify, g, url_for, redirect
+from flask import abort, request, jsonify, g, url_for, redirect, render_template
 from flask_httpauth import HTTPBasicAuth
 from flask_login import current_user, login_user, logout_user
 from app import db, flask_bcrypt, jwt, login
@@ -14,16 +14,74 @@ from flask_jwt_extended import (
 from app.system import *
 from app.dac import *
 
+#app = create_app()
 
 @app.route('/')
+@app.route('/doc')
 @app.route('/index')
-def index():
-    return 'Hello, World!'
+def doc():
+    return render_template('doc.html')
 
 
 # User Registration
 @app.route('/register', methods=['POST'])
 def register():
+    """ End-point for user registration.
+    ---
+    description: User Registration.
+    post:
+        description: User Registration.
+        requestBody:
+            description : Request body bitches!
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            username:
+                                type: string
+                                description: Username
+                                example: ObiWan
+                                required: true
+                            fname:
+                                type: string
+                                example: Obi
+                                required: true
+                            lname:
+                                type: string
+                                example: Wan
+                                required: true
+                            password:
+                                type: string
+                                example: Ob12W@n
+                                required: true
+                            email:
+                                type: string
+                                example: obi@wan.com
+                                required: true
+                            phone:
+                                type: string
+                                example: 999-999-9999
+                                required: true
+                            role_id:
+                                type: string
+                                example: 1
+                                required: true
+        responses:
+            200:
+                description: Successful creation of a user
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                Status:
+                                    type: string
+                                    example: 200
+                                message:
+                                    type: string
+                                    example: User created successfully
+    """
     admin_check = is_User("Admin")
     if current_user.is_authenticated:
         if admin_check != 200:
@@ -81,12 +139,42 @@ def show_user(id):
 @app.route('/api/add_module', methods=['POST'])
 @jwt_required
 def add_module():
-    """
-    api structure :
-    {
-        "mod_name" : "Maths"
-    }
-    """
+    """ End-point for adding new modules.
+            ---
+            description: Add module
+            post:
+                description: Adding a new module
+                requestBody:
+                    description : Request body bitches!
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    mod_name:
+                                        type: string
+                                        description: The name of the module that needs to be added
+                                        example: maths
+                responses:
+                    200:
+                        description: Successful creation of a new module
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: Module added in successfully
+                components:
+                    securitySchemes:
+                        BearerAuth:
+                            type: string
+                            scheme: bearer
+            """
 
     # Only an admin is allowed to add new modules
 
@@ -127,27 +215,60 @@ def add_module():
 @app.route('/api/create_exam', methods=["POST"])
 @jwt_required
 def create_exam():
-    """
-    api_structure :
-    {
-    "mod_id": 1,
-    "name": "random",
-    "questions": [
-        {
-            "question": "What is the answer of life?",
-            "correct_ans": "42",
-            "options": ["31", "0", "42"]
-
-        },
-        {
-            "question": "Who is Arsenal's best manager",
-            "correct_ans": "Arsene Wenger",
-            "options": ["Arsene Wenger", "Unai Emery", "Herbery Chapman"]
-        }
-    ]
-}
-
-    """
+    """ End-point for creating exams.
+        ---
+        description: Exam creation
+        post:
+            description: Exam creation
+            requestBody:
+                description : Request body bitches!
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                mod_id:
+                                    type: integer
+                                    description: Module ID
+                                    example: 1
+                                    required: true
+                                exam_name:
+                                    type: string
+                                    description: Name of the exam
+                                    example: Midterm
+                                    required: true
+                                exam:
+                                    type: array
+                                    items:
+                                        type: object
+                                        properties:
+                                            question:
+                                                type: string
+                                                example : What is life?
+                                                required: true
+                                            correct_ans:
+                                                type: string
+                                                example: 2
+                                            options:
+                                                type: array
+                                                items:
+                                                    type: integer
+                                                example: [1,2,1]
+            responses:
+                200:
+                    description: Successful creation of exam
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 200
+                                    message:
+                                        type: string
+                                        example: Exam created successfully
+        """
     data = request.get_json()
     ad_tut_check = is_User("Admin") or is_User("Tutor")
     if ad_tut_check != 200:
@@ -171,6 +292,44 @@ def create_exam():
 @app.route('/api/view_grade', methods=["POST"])
 @jwt_required
 def view_grade():
+    """ End-point for viewing the grade of an exam.
+        ---
+        description: Viewing grades
+        post:
+            description: Viewing grades
+            requestBody:
+                description : Request body bitches!
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                exam_id:
+                                    type: integer
+                                    description: ID of the exam whose grade you want to see
+                                    example: 1
+
+            responses:
+                200:
+                    description: Successful display
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 200
+                                    message:
+                                        type: integer
+                                        example: Grades displayed successfully
+                                    grade:
+                                        type: string
+                                        example: 100.0
+                                    exam_name:
+                                        type: string
+                                        example: Midterm
+        """
     data = request.get_json()
 
     # print(is_User("Student"), current_user.UserRole.User_Type)
@@ -216,6 +375,49 @@ def view_grade():
 @app.route('/api/submit_exam', methods=["POST"])
 @jwt_required
 def submit_exam():
+    """ End-point for submitting exams.
+            ---
+            description: Exam Submission
+            post:
+                description: Exam Submission
+                requestBody:
+                    description : Request body bitches!
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    exam_id:
+                                        type: integer
+                                        description: ID of the exam which you want to submit
+                                        example: 1
+                                    sub:
+                                        type: object
+                                        properties:
+                                            ques_id:
+                                                type: integer
+                                                description: ID of a question
+                                                example: 1
+                                            ans:
+                                                type: integer
+                                                description: The answer of a question
+                                                example: 2
+
+                responses:
+                    200:
+                        description: Successful submission
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: Exam submitted successfully
+            """
     stud_check = is_User("Student")
     if stud_check != 200:
         res = ErrorResponse(401)
@@ -449,6 +651,67 @@ def set_pref():
 
 @app.route('/login', methods=['POST'])
 def login():
+    """ End-point for logging in exams.
+            ---
+            description: Login
+            post:
+                description: Login
+                requestBody:
+                    description : Request body bitches!
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    username:
+                                        type: string
+                                        description: Username of the user who wants to log in
+                                        example: ObiWan
+                                        required: true
+                                    password:
+                                        type: string
+                                        description: Password of the user who wants to log in
+                                        example: P@$$word
+                                        required: true
+                responses:
+                    200:
+                        description: Successful login
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: User logged in successfully
+                                        token:
+                                            type: string
+                                            example : the JWT token
+                                        refresh:
+                                            type: string
+                                            example: the refresh token
+                                        user_info:
+                                            type: object
+                                            properties:
+                                                first_name:
+                                                    type: string
+                                                    example: Obi
+                                                last_name:
+                                                    type: string
+                                                    example: Wan
+                                                user_id:
+                                                    type: string
+                                                    example: 123
+                                                user_type:
+                                                    type: string
+                                                    example: Student
+                                                username:
+                                                    type: string
+                                                    example: ObiWan
+            """
     data = request.get_json()
     # return data
 
@@ -516,6 +779,30 @@ def unauthorized_response(callback):
 @app.route('/logout')
 # @jwt_required
 def logout():
+    """ End-point for logging out.
+                ---
+                description: Logout
+                get:
+                    description: Logout
+                    responses:
+                        200:
+                            description: Successful login
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            Status:
+                                                type: string
+                                                example: 200
+                                            message:
+                                                type: string
+                                                example: User logged out successfully
+                                            user_id:
+                                                type: string
+                                                description: the userid of the logged out user
+                                                example : 23
+                """
     if not current_user.is_authenticated:
         res = Response(
             400,
