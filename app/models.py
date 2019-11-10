@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 from app import db, login
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -60,7 +60,8 @@ class UserInfo(UserMixin, db.Model):
     Replies = rel_obj.one_to_many('UserInfo', 'DiscussionThread')  # 1 user can have many replies
 
     Last_Login = Column(db.DateTime, default=datetime.now())
-    Login_password = Column(String(128))
+    Login_password = Column(String(128), nullable=False)
+    Security_password = Column(String(128), nullable=True)
 
     def get_id(self):
         return self.User_ID
@@ -105,8 +106,6 @@ class ExamQuestion(db.Model):
     Option_4 = Column(String(100))
     Correct_ans = Column(Integer, nullable=False)
     Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'))
-
-
 
 
 class Exam(db.Model):
@@ -161,14 +160,15 @@ class StudentAnswerSheet(db.Model):
     Sheet_ID = Column(Integer, primary_key=True)
     Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'))
     Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'))
-    Answers = rel_obj.one_to_many('StudentAnswerSheet','UserAnswer')
+    Answers = rel_obj.one_to_many('StudentAnswerSheet', 'UserAnswer')
+
 
 class UserAnswer(db.Model):
     # Answer_ID = db.Model(Integer, primary_key=True)
     Sheet_ID = Column(Integer, db.ForeignKey('student_answer_sheet.Sheet_ID'))
     Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
     Question_ID = Column(Integer, db.ForeignKey('exam_question.Question_ID'), primary_key=True)
-    Ans = Column(Integer,nullable=False)
+    Ans = Column(Integer, nullable=False)
 
 
 # Flashcards
@@ -189,12 +189,13 @@ class Flashcard(db.Model):
 class FC_Preference(db.Model):
     Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
     FC_ID = Column(Integer, db.ForeignKey('flashcard.FC_ID'), primary_key=True)
-    Category_Name = Column(String(100), nullable=False)
+    Difficulty = Column(Integer, default=2)
 
 
 # Discussion
 class Discussion(db.Model):
     Discussion_ID = Column(Integer, primary_key=True)
+    Discussion_Title = Column(String(100), default="")
     Main_Discussion = Column(String(1000), nullable=False)
     User_ID = Column(Integer, db.ForeignKey('user_info.User_ID'))
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
@@ -210,7 +211,6 @@ class DiscussionThread(db.Model):
     User_ID = Column(Integer, db.ForeignKey('user_info.User_ID'))
     Message = Column(String(10000), nullable=False)
     Time = Column(DateTime, default=datetime.now())
-
 
 # engine = create_engine('sqlite:///getSatPro.db')
 # Base.metadata.create_all(engine)

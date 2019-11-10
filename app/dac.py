@@ -5,9 +5,17 @@
 from app.models import *
 from app import db, flask_bcrypt
 import sqlalchemy
+from flask_login import current_user
 
 
 def exists(name, obj, res):
+    """
+
+    :param name: The name of the object - Discussion, Module, User, etc
+    :param obj: The object
+    :param res: Our response object, which will return the final API response
+    :return: The response object
+    """
     if obj:
         return res
     else:
@@ -17,6 +25,12 @@ def exists(name, obj, res):
 
 
 def insert(field):
+    """
+
+    :param field: the object of the field that needs to be inserted
+
+    :return: None if the field already exists, otherwise the field object
+    """
     try:
         db.session.add(field)
         db.session.commit()
@@ -154,3 +168,61 @@ def create_report(data):
     )
 
     return insert(new_report)
+
+
+def get_discussion(data):
+    try:
+        return Discussion.query.filter_by(
+            Discussion_ID=data["discuss_id"]
+        ).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+
+def create_discussion(data):
+    new_discussion = Discussion(
+        Discussion_Title=data["title"],
+        Main_Discussion=data["content"],
+        User_ID=data["user_id"],
+        Module_ID=data["mod_id"],
+    )
+
+    return insert(new_discussion)
+
+
+def create_discus_thread(data):
+    new_dthread = DiscussionThread(
+        User_ID=data["user_id"],
+        Discussion_ID=data["discuss_id"],
+        Message=data["content"],
+    )
+
+    return insert(new_dthread)
+
+
+# Flashcards
+
+def get_flashcard_set(data):
+    try:
+        return FlashcardSet.query.filter_by(
+            Set_ID=data["set_id"]
+        ).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+def get_flashcard(data):
+    try:
+        return Flashcard.query.filter_by(
+            FC_ID = data["fc_id"]
+        ).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+def get_fcpref(data):
+    try:
+        return FC_Preference.query.filter_by(
+            Student_ID = data["stud_id"],
+            FC_ID = data["fc_id"],
+        ).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None

@@ -303,6 +303,149 @@ def get_exams():
     return ret
 
 
+# Exam discussion
+
+# Create
+
+@app.route('/api/create_discussion', methods=["POST"])
+@jwt_required
+def create_discussion():
+    data = request.get_json()
+    data["user_id"] = current_user.User_ID
+    new_discus = create_discussion(data)
+
+    try:
+        res = Response(
+            200,
+            "Discussion created successfully"
+        )
+
+        res = exists('Discussion', new_discus, res)
+
+        return res.content()
+    except:
+        res = ErrorResponse(400)
+        return res.content()
+
+
+@app.route('/api/create_discus_thread', methods=["POST"])
+@jwt_required
+def create_discus_thread():
+    data = request.get_json()
+    data["user_id"] = current_user.User_ID
+    new_dthread = create_discus_thread(data)
+    try:
+        res = Response(
+            200,
+            "Discussion thread created successfully"
+        )
+
+        res = exists('Discussion', new_dthread, res)
+
+        return res.content()
+    except:
+        return res.content()
+
+
+@app.route('/api/view_discussion')
+@jwt_required
+def view_discussion():
+    data = request.get_json()
+    discuss = get_discussion(data)
+
+    if discuss:
+        reply_list = []
+        replies = discuss.Replies.all()
+
+        for reply in replies:
+            temp = {
+                "thread_id": reply.Thread_ID,
+                "content": reply.Message,
+            }
+            reply_list.append(temp)
+
+        res = Response(
+            200,
+            "Fetched discussion successfully"
+        )
+        ret = res.content()
+        ret["replies"] = reply_list
+        ret["discuss_id"] = data["discuss_id"]
+
+        return ret
+    else:
+        res = ErrorResponse(400)
+        return res.content()
+
+
+# Flashcards
+@app.route('/api/view_flashcard')
+@jwt_required
+def view_flashcards():
+    data = request.get_json()
+    fset = get_flashcard_set(data)
+
+    if fset:
+        flashcards = fset.Flashcards.all()
+        card_list = []
+        for card in flashcards:
+            temp_data = {
+                "fc_id":card.FC_ID
+            }
+            temp_card = get_flashcard(temp_data)
+            if temp_card:
+                card_data = {
+                    "set_id":data["set_id"],
+                    "question":temp_card.Question,
+                    "answer":temp_card.Answer,
+                }
+
+                pref = get_fcpref({
+                    "stud_id":current_user.User_ID,
+                    "fc_id":card.FC_ID
+                })
+
+                card_data["difficulty"] = get_difficulty(pref.Difficulty)
+
+                card_list.append(card_data)
+            else:
+                continue
+
+        res = Response(
+            200,
+            "Fetched flashcard sets successfully"
+        )
+
+        ret = res.content()
+        ret["flashcards"] = card_list.append()
+
+        return ret
+    else:
+        return ErrorResponse(400).content()
+
+@app.route('/api/set_pref')
+@jwt_required
+def set_pref():
+    data = request.get_json()
+    fc_pref = get_fcpref({
+        "stud_id":current_user.User_ID,
+        "FC_ID":data["fc_id"]
+    })
+
+    if fc_pref:
+        fc_pref.difficulty = data["diff"]
+        db.session.commit()
+        return Response(
+            200,
+            "Preference set succesfully"
+        ).content()
+
+    else:
+        return ErrorResponse(400).content()
+
+
+
+
 # /users/<int:id>
 
 @app.route('/login', methods=['POST'])

@@ -2,6 +2,15 @@ from app.models import *
 from flask_login import current_user, login_user, logout_user
 
 
+def get_difficulty(num):
+    diff = {
+        1: "Easy",
+        2 : "Medium",
+        3 : "Hard",
+    }
+    return diff[num]
+
+
 def parse_ans(Submission):
     data = {}
     for ans in Submission:
@@ -72,3 +81,11 @@ class ErrorResponse(Response):
             400: "Bad Request",
             401: "Unauthorized request"
         }
+
+"""
+Some of the issues I am facing
+* DB sync
+* Scalability? I'll have to check. But I can do it.
+
+
+"""
