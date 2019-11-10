@@ -390,19 +390,19 @@ def view_flashcards():
         card_list = []
         for card in flashcards:
             temp_data = {
-                "fc_id":card.FC_ID
+                "fc_id": card.FC_ID
             }
             temp_card = get_flashcard(temp_data)
             if temp_card:
                 card_data = {
-                    "set_id":data["set_id"],
-                    "question":temp_card.Question,
-                    "answer":temp_card.Answer,
+                    "set_id": data["set_id"],
+                    "question": temp_card.Question,
+                    "answer": temp_card.Answer,
                 }
 
                 pref = get_fcpref({
-                    "stud_id":current_user.User_ID,
-                    "fc_id":card.FC_ID
+                    "stud_id": current_user.User_ID,
+                    "fc_id": card.FC_ID
                 })
 
                 card_data["difficulty"] = get_difficulty(pref.Difficulty)
@@ -423,13 +423,14 @@ def view_flashcards():
     else:
         return ErrorResponse(400).content()
 
+
 @app.route('/api/set_pref')
 @jwt_required
 def set_pref():
     data = request.get_json()
     fc_pref = get_fcpref({
-        "stud_id":current_user.User_ID,
-        "FC_ID":data["fc_id"]
+        "stud_id": current_user.User_ID,
+        "FC_ID": data["fc_id"]
     })
 
     if fc_pref:
@@ -442,8 +443,6 @@ def set_pref():
 
     else:
         return ErrorResponse(400).content()
-
-
 
 
 # /users/<int:id>
