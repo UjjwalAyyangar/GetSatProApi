@@ -49,3 +49,5 @@ FLASHCARD_SET_ID = "set_id"
 FLASHCARD_SET_NAME = "set_name"
 FLASHCARD_ID = "fc_id"
 FLASHCARD_DIFFICULTY = "diff"
+
+# https://dev.to/djiit/documenting-your-flask-powered-api-like-a-boss-9eo
