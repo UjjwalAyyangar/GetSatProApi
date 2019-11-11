@@ -39,5 +39,5 @@ def make_doc():
     with open(path, 'r+') as f:
         f.seek(0)
         a = json.dumps(spec.to_dict(), indent=2)
-        print(spec.to_yaml())
+        # print(spec.to_yaml())
         json.dump(spec.to_dict(), f)

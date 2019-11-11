@@ -34,7 +34,7 @@ def register():
     post:
         description: User Registration.
         requestBody:
-            description : Request body bitches!
+            description : Request body
             content:
                 application/json:
                     schema:
@@ -179,7 +179,7 @@ def add_module():
             post:
                 description: Adding a new module
                 requestBody:
-                    description : Request body bitches!
+                    description : Request body
                     content:
                         application/json:
                             schema:
@@ -263,7 +263,7 @@ def create_exam():
         post:
             description: Exam creation
             requestBody:
-                description : Request body bitches!
+                description : Request body
                 content:
                     application/json:
                         schema:
@@ -357,7 +357,7 @@ def view_grade():
         post:
             description: Viewing grades
             requestBody:
-                description : Request body bitches!
+                description : Request body
                 content:
                     application/json:
                         schema:
@@ -452,7 +452,7 @@ def submit_exam():
             post:
                 description: Exam Submission
                 requestBody:
-                    description : Request body bitches!
+                    description : Request body
                     content:
                         application/json:
                             schema:
@@ -757,7 +757,7 @@ def login():
             post:
                 description: Login
                 requestBody:
-                    description : Request body bitches!
+                    description : Request body
                     content:
                         application/json:
                             schema:
@@ -948,11 +948,3 @@ def logout():
 
     return ret
 
-
-# TODO
-"""
-Implement Login from this - https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins
-Combine it with this - https://blog.miguelgrinberg.com/post/restful-authentication-with-flask
-JWT - https://medium.com/@riken.mehta/full-stack-tutorial-3-flask-jwt-e759d2ee5727
-
-"""
