@@ -12,7 +12,7 @@ def make_doc():
         title="Get Sat Pro API",
         version="0.0.1",
         info=dict(
-            description='For devs, by a devs',
+            description='For squadrons, by squadrons',
         ),
         plugins=[FlaskPlugin()],
         openapi_version="3.0.2"
@@ -27,6 +27,14 @@ def make_doc():
         spec.path(view=submit_exam)
         spec.path(view=view_grade)
 
+    jwt_scheme = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "We use JWT tokens for making authenticated requests"
+    }
+
+    spec.components.security_scheme("jwt", jwt_scheme)
     path = os.path.join(basedir, 'app', 'static', 'swagger.json')
     with open(path, 'r+') as f:
         f.seek(0)

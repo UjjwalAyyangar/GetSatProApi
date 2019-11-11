@@ -31,12 +31,13 @@ QUESTION_ID = "ques_id"
 QUESTION = "question"
 QUESTION_ANS = "ans"
 QUESTION_OPTIONS = "options"  # pass as a list
-
+QUESTIONS = "questions"
 # Answer Sheet
 ANSWER = "ans"
 
 # Report
-
+GRADE = "grade"
+SHEET_ID = "sheet_id"
 
 # Discussion and thread
 DISCUSS_ID = "discuss_id"
@@ -49,5 +50,3 @@ FLASHCARD_SET_ID = "set_id"
 FLASHCARD_SET_NAME = "set_name"
 FLASHCARD_ID = "fc_id"
 FLASHCARD_DIFFICULTY = "diff"
-
-# https://dev.to/djiit/documenting-your-flask-powered-api-like-a-boss-9eo

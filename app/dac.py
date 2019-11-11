@@ -6,11 +6,11 @@ from app.models import *
 from app import db, flask_bcrypt
 import sqlalchemy
 from flask_login import current_user
+from app.constants import *
 
 
 def exists(name, obj, res):
     """
-
     :param name: The name of the object - Discussion, Module, User, etc
     :param obj: The object
     :param res: Our response object, which will return the final API response
@@ -50,13 +50,13 @@ def create_user(data):
     pwd = flask_bcrypt.generate_password_hash(data.get('password'))
     print(pwd)
     new_user = UserInfo(
-        Username=data["username"],
+        Username=data[USERNAME],
         Login_password=pwd,
-        First_Name=data["fname"],
-        Last_Name=data["lname"],
-        Email=data["email"],
-        Phone=data["phone"],
-        Role_ID=int(data["role_id"])
+        First_Name=data[USER_FNAME],
+        Last_Name=data[USER_LNAME],
+        Email=data[EMAIL],
+        Phone=data[PHONE],
+        Role_ID=int(data[ROLE_ID])
     )
 
     return insert(new_user)
@@ -71,7 +71,7 @@ def get_module(mod_id):
 
 def create_module(data):
     new_module = Module(
-        Module_Name=data["mod_name"]
+        Module_Name=data[MODULE_NAME]
     )
 
     return insert(new_module)
@@ -89,14 +89,14 @@ def get_exam(id):
 
 def create_exam(data):
     new_exam = Exam(
-        Exam_Name=data["name"],
-        Module_ID=data["mod_id"]
+        Exam_Name=data[EXAM_NAME],
+        Module_ID=data[MODULE_ID]
     )
 
     new_exam = insert(new_exam)
 
     # add questions to the exam
-    questions = data["questions"]
+    questions = data[QUESTIONS]
 
     if new_exam:
         for question in questions:
@@ -115,12 +115,12 @@ def create_exam(data):
 
 def create_question(data):
     new_question = ExamQuestion(
-        Exam_ID=data["exam_id"],
-        Question=data["question"],
-        Option_1=data["options"][0],
-        Option_2=data["options"][1],
-        Option_3=data["options"][2],
-        Correct_ans=data["correct_ans"]
+        Exam_ID=data[EXAM_ID],
+        Question=data[QUESTION],
+        Option_1=data[QUESTION_OPTIONS][0],
+        Option_2=data[QUESTION_OPTIONS][1],
+        Option_3=data[QUESTION_OPTIONS][2],
+        Correct_ans=data[QUESTION_ANS]
     )
 
     return insert(new_question)
@@ -128,8 +128,8 @@ def create_question(data):
 
 def create_ans_sheet(data):
     new_ans_sheet = StudentAnswerSheet(
-        Student_ID=data["student_id"],
-        Exam_ID=data["exam_id"]
+        Student_ID=data[STUDENT_ID],
+        Exam_ID=data[EXAM_ID]
     )
 
     return insert(new_ans_sheet)
@@ -137,9 +137,9 @@ def create_ans_sheet(data):
 
 def create_ans(data, sheet=None):
     new_ans = UserAnswer(
-        Student_ID=data["student_id"],
-        Question_ID=data["ques_id"],
-        Ans=data["ans"]
+        Student_ID=data[STUDENT_ID],
+        Question_ID=data[QUESTION_ID],
+        Ans=data[ANSWER]
     )
     if sheet:
         sheet.Answers.append(new_ans)
@@ -161,10 +161,10 @@ def get_report(student_id, exam_id):
 
 def create_report(data):
     new_report = StudentReport(
-        Student_ID=data["student_id"],
-        Exam_ID=data["exam_id"],
-        Sheet_ID=data["sheet_id"],
-        Grade=data["grade"]
+        Student_ID=data[STUDENT_ID],
+        Exam_ID=data[EXAM_ID],
+        Sheet_ID=data[SHEET_ID],
+        Grade=data[GRADE]
     )
 
     return insert(new_report)
@@ -173,7 +173,7 @@ def create_report(data):
 def get_discussion(data):
     try:
         return Discussion.query.filter_by(
-            Discussion_ID=data["discuss_id"]
+            Discussion_ID=data[DISCUSS_ID]
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
@@ -181,10 +181,10 @@ def get_discussion(data):
 
 def create_discussion(data):
     new_discussion = Discussion(
-        Discussion_Title=data["title"],
-        Main_Discussion=data["content"],
-        User_ID=data["user_id"],
-        Module_ID=data["mod_id"],
+        Discussion_Title=data[DISCUSS_TITLE],
+        Main_Discussion=data[DISCUSS_MAIN],
+        User_ID=data[USER_ID],
+        Module_ID=data[MODULE_ID],
     )
 
     return insert(new_discussion)
@@ -192,9 +192,9 @@ def create_discussion(data):
 
 def create_discus_thread(data):
     new_dthread = DiscussionThread(
-        User_ID=data["user_id"],
-        Discussion_ID=data["discuss_id"],
-        Message=data["content"],
+        User_ID=data[USER_ID],
+        Discussion_ID=data[DISCUSS_ID],
+        Message=data[DISCUSS_CONTENT],
     )
 
     return insert(new_dthread)
@@ -205,7 +205,7 @@ def create_discus_thread(data):
 def get_flashcard_set(data):
     try:
         return FlashcardSet.query.filter_by(
-            Set_ID=data["set_id"]
+            Set_ID=data[FLASHCARD_SET_ID]
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
@@ -213,7 +213,7 @@ def get_flashcard_set(data):
 def get_flashcard(data):
     try:
         return Flashcard.query.filter_by(
-            FC_ID = data["fc_id"]
+            FC_ID = data[FLASHCARD_ID]
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
@@ -221,8 +221,8 @@ def get_flashcard(data):
 def get_fcpref(data):
     try:
         return FC_Preference.query.filter_by(
-            Student_ID = data["stud_id"],
-            FC_ID = data["fc_id"],
+            Student_ID = data[STUDENT_ID],
+            FC_ID = data[FLASHCARD_ID],
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None

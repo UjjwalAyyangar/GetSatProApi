@@ -14,6 +14,8 @@ from flask_jwt_extended import (
 from app.system import *
 from app.dac import *
 
+# from app.constants import *
+
 #app = create_app()
 
 @app.route('/')
@@ -81,6 +83,32 @@ def register():
                                 message:
                                     type: string
                                     example: User created successfully
+            401:
+                description: Unauthorized request
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                Status:
+                                    type: string
+                                    example: 401
+                                message:
+                                    type: string
+                                    example: Only Admins can add new users to the system.
+            405:
+                description: Bad Method
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                Status:
+                                    type: string
+                                    example: 405
+                                message:
+                                    type: string
+                                    example: Method not allowed
     """
     admin_check = is_User("Admin")
     if current_user.is_authenticated:
@@ -169,11 +197,19 @@ def add_module():
                                         message:
                                             type: string
                                             example: Module added in successfully
-                components:
-                    securitySchemes:
-                        BearerAuth:
-                            type: string
-                            scheme: bearer
+                    401:
+                        description: Bad request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Only an admin is allowed to add modules.
             """
 
     # Only an admin is allowed to add new modules
@@ -268,6 +304,19 @@ def create_exam():
                                     message:
                                         type: string
                                         example: Exam created successfully
+                401:
+                    description: Unauthorized request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 401
+                                    message:
+                                        type: string
+                                        example: Only Admins or Tutors can make this request.
         """
     data = request.get_json()
     ad_tut_check = is_User("Admin") or is_User("Tutor")
@@ -329,6 +378,18 @@ def view_grade():
                                     exam_name:
                                         type: string
                                         example: Midterm
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 400
+                                    message:
+                                        type: string
         """
     data = request.get_json()
 
@@ -392,16 +453,18 @@ def submit_exam():
                                         description: ID of the exam which you want to submit
                                         example: 1
                                     sub:
-                                        type: object
-                                        properties:
-                                            ques_id:
-                                                type: integer
-                                                description: ID of a question
-                                                example: 1
-                                            ans:
-                                                type: integer
-                                                description: The answer of a question
-                                                example: 2
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                ques_id:
+                                                    type: integer
+                                                    description: ID of a question
+                                                    example: 1
+                                                ans:
+                                                    type: integer
+                                                    description: The answer of a question
+                                                    example: 2
 
                 responses:
                     200:
@@ -417,6 +480,32 @@ def submit_exam():
                                         message:
                                             type: string
                                             example: Exam submitted successfully
+                    401:
+                        description: Only a student can make this request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Only a student user can submit an exam.
+                    400:
+                        description: Already submitted
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 400
+                                        message:
+                                            type: string
+                                            example: The exam is already submitted.
             """
     stud_check = is_User("Student")
     if stud_check != 200:
@@ -711,6 +800,19 @@ def login():
                                                 username:
                                                     type: string
                                                     example: ObiWan
+                    401:
+                        description: Invalid credentials
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Invalid credentials
             """
     data = request.get_json()
     # return data
@@ -786,7 +888,7 @@ def logout():
                     description: Logout
                     responses:
                         200:
-                            description: Successful login
+                            description: Successful Logout
                             content:
                                 application/json:
                                     schema:
@@ -802,6 +904,19 @@ def logout():
                                                 type: string
                                                 description: the userid of the logged out user
                                                 example : 23
+                        400:
+                            description: Already logged out
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            Status:
+                                                type: string
+                                                example: 400
+                                            message:
+                                                type: string
+                                                example: Already logged out i.e. no user is logged in.
                 """
     if not current_user.is_authenticated:
         res = Response(
