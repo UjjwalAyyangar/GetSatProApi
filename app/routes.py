@@ -47,26 +47,32 @@ def register():
                                 required: true
                             fname:
                                 type: string
+                                description: First name of the user
                                 example: Obi
                                 required: true
                             lname:
                                 type: string
+                                description: Last name of the user
                                 example: Wan
                                 required: true
                             password:
                                 type: string
+                                description: The password that the user wants to set
                                 example: Ob12W@n
                                 required: true
                             email:
                                 type: string
+                                description: Email id of the user
                                 example: obi@wan.com
                                 required: true
                             phone:
                                 type: string
+                                description: Phone number of the user
                                 example: 999-999-9999
                                 required: true
                             role_id:
                                 type: string
+                                description: Used to denote the type of user. 1 = Student, 2 = Tutor, 3 = Admin
                                 example: 1
                                 required: true
         responses:
@@ -275,20 +281,24 @@ def create_exam():
                                     required: true
                                 exam:
                                     type: array
+                                    description : An array of questions
                                     items:
                                         type: object
                                         properties:
                                             question:
                                                 type: string
+                                                description: The question
                                                 example : What is life?
                                                 required: true
                                             correct_ans:
                                                 type: string
+                                                description: Correct answer of the question
                                                 example: 2
                                             options:
                                                 type: array
+                                                description: Options of the question
                                                 items:
-                                                    type: integer
+                                                    type: string
                                                 example: [1,2,1]
             responses:
                 200:
@@ -454,6 +464,7 @@ def submit_exam():
                                         example: 1
                                     sub:
                                         type: array
+                                        description: An array of Questions and Answers
                                         items:
                                             type: object
                                             properties:
