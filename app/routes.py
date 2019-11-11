@@ -288,7 +288,7 @@ def create_exam():
                                             question:
                                                 type: string
                                                 description: The question
-                                                example : What is life?
+                                                example : Who is Obi Wan?
                                                 required: true
                                             correct_ans:
                                                 type: string
@@ -299,7 +299,7 @@ def create_exam():
                                                 description: Options of the question
                                                 items:
                                                     type: string
-                                                example: [1,2,1]
+                                                example: [A Jedi,A Sith,Ujjwal's student]
             responses:
                 200:
                     description: Successful creation of exam
@@ -474,8 +474,8 @@ def submit_exam():
                                                     example: 1
                                                 ans:
                                                     type: integer
-                                                    description: The answer of a question
-                                                    example: 2
+                                                    description: The answer option of a question
+                                                    example: 1
 
                 responses:
                     200:
