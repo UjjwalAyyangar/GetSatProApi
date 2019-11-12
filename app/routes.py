@@ -133,13 +133,13 @@ def register():
             return res.content()
 
     data = request.get_json()
-
+    print(data)
     if not complete_request:
         res = ErrorResponse(405)
         return res.content()
 
     user = create_user(data)
-
+    print(user)
     res = Response(
         200,
         "User created successfully"
@@ -296,6 +296,7 @@ def add_module():
                                         type: string
                                         description: The name of the module that needs to be added
                                         example: maths
+                                        required: true
                 responses:
                     200:
                         description: Successful creation of a new module
@@ -457,12 +458,12 @@ def api_create_exam():
 
 @app.route('/api/view_grade', methods=["POST"])
 @jwt_required
-def view_grade():
+def api_view_grade():
     """ End-point for viewing the grade of an exam.
         ---
-        description: Viewing grades
+        description: Viewing grade
         post:
-            description: Viewing grades
+            description: Viewing grade
             requestBody:
                 description : Request body
                 content:
@@ -474,7 +475,11 @@ def view_grade():
                                     type: integer
                                     description: ID of the exam whose grade you want to see
                                     example: 1
-
+                                stud_id:
+                                    type: integer
+                                    description: ID of the student whose grade you want to see
+                                    example: 434
+                                    required: false
             responses:
                 200:
                     description: Successful display
@@ -488,7 +493,7 @@ def view_grade():
                                         example: 200
                                     message:
                                         type: integer
-                                        example: Grades displayed successfully
+                                        example: Grade displayed successfully
                                     grade:
                                         type: string
                                         example: 100.0
@@ -507,52 +512,190 @@ def view_grade():
                                         example: 400
                                     message:
                                         type: string
+                401:
+                    description: Unauthorized request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 401
+                                    message:
+                                        type: string
+                                        example: Unauthorized request
         """
-    data = request.get_json()
 
+    if not current_user.is_authenticated:
+        return ErrorResponse(401).content()
+
+    data = request.get_json()
+    exam_id = data[EXAM_ID]
     # print(is_User("Student"), current_user.UserRole.User_Type)
     if is_User("Student") == 200:
-        student_id = current_user.User_ID
+        stud_id = current_user.User_ID
     else:
         try:
-            student_id = data["student_id"]
+            stud_id = data[STUDENT_ID]
         except:
             res = ErrorResponse(400)
             return res.content()
 
-    exam = get_exam(data["exam_id"])
+    # check if that exam exists
+    exam = get_exam(exam_id)
+    if not exam:
+        return ErrorResponse(400).content()
 
-    exam_name = "NA"
-    if exam:
-        exam_name = exam.Exam_Name
+    # check if the student has submitted that exam
+    if not check_sub_exam(exam_id, stud_id):
+        return ErrorResponse(400).content()
 
-    grade = "NA"
+    report = get_report(stud_id, exam_id)
 
-    report = get_report(student_id, data["exam_id"])
-    if report:
-        grade = report.Grade
+    # report cannot be null at this point
+    res = Response(
+        200,
+        "Grade displayed successfully"
+    ).content()
+
+    res[GRADE] = report.Grade
+    res[EXAM_NAME] = exam.Exam_Name
+    return res
+
+
+@app.route('/api/view_grades', methods=["POST"])
+@jwt_required
+def api_view_grades():
+    """ End-point for viewing the grade of an exam.
+            ---
+            description: Viewing all grades
+            post:
+                description: Viewing grades
+                requestBody:
+                    description : Request body
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    module_id:
+                                        type: integer
+                                        description: ID of the module, the grades of whose exam you want to see
+                                        example: 1
+                                        required: false
+                                    stud_id:
+                                        type: integer
+                                        description: ID of the student whose grade you want to see. You'll need to enter it if you are not a student.
+                                        example: 434
+                                        required: false
+                responses:
+                    200:
+                        description: Successful display
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 200
+                                        message:
+                                            type: integer
+                                            example: Grade displayed successfully
+                                        exams:
+                                            type: array
+                                            items:
+                                                type: object
+                                                properties:
+                                                    exam_id:
+                                                        type: integer
+                                                        example: 3
+                                                    exam_name:
+                                                        type: string
+                                                        example: Sample
+                                                    grade:
+                                                        type: string
+                                                        example: 45.5
+                                                    mod_id:
+                                                        type: integer
+                                                        example: 4
+                    400:
+                        description: Bad Request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 400
+                                        message:
+                                            type: string
+                                            example: Bad Request
+                    401:
+                        description: Unauthorized request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Unauthorized request
+            """
+    if not current_user.is_authenticated:
+        return ErrorResponse(401).content()
+
+    data = request.get_json()
+    module_id = data.get(MODULE_ID)
+    # print(is_User("Student"), current_user.UserRole.User_Type)
+    if is_User("Student") == 200:
+        stud_id = current_user.User_ID
+    else:
+        try:
+            stud_id = data[STUDENT_ID]
+        except:
+            res = ErrorResponse(400)
+            return res.content()
+
+    if module_id:
+        exams = get_exams(module_id)
+    else:
+        exams = get_exams()
+
+    exam_list = []
+    for exam in exams:
+        exam_id = exam.Exam_ID
+        if not check_sub_exam(exam_id, stud_id):
+            continue
+
+        report = get_report(stud_id, exam_id)
+        t_report = {
+            EXAM_ID: exam_id,
+            EXAM_NAME: exam.Exam_Name,
+            GRADE: report.Grade,
+            MODULE_ID: exam.Module_ID
+        }
+
+        exam_list.append(t_report)
 
     res = Response(
         200,
         "Grades displayed successfully"
-    )
+    ).content()
 
-    ret = res.content()
+    res["exams"] = exam_list
 
-    if not exam:
-        ret["message"] = "No such exam exists"
-    elif not report:
-        ret["message"] = "The user has not given this exam, yet."
-
-    ret["exam_name"] = exam_name
-    ret["grade"] = grade
-
-    return ret
+    return res
 
 
 @app.route('/api/submit_exam', methods=["POST"])
 @jwt_required
-def submit_exam():
+def api_submit_exam():
     """ End-point for submitting exams.
             ---
             description: Exam Submission
@@ -569,9 +712,11 @@ def submit_exam():
                                         type: integer
                                         description: ID of the exam which you want to submit
                                         example: 1
+                                        required: true
                                     sub:
                                         type: array
                                         description: An array of Questions and Answers
+                                        required: true
                                         items:
                                             type: object
                                             properties:
@@ -636,46 +781,168 @@ def submit_exam():
     data = request.get_json()
     student_id = current_user.User_ID
 
+    # check if the exam already exists or not
     exam_id = data["exam_id"]
-    exam = Exam.query.filter_by(Exam_ID=exam_id).one()
+    exam = get_exam(exam_id)
+    if not exam:
+        return Response(
+            404,
+            "Exam does not exist"
+        ).content()
+
+    # check if the user has already submitted this exam or not
+    if check_sub_exam(exam_id):
+        return Response(
+            200,
+            "Exam already submitted"
+        ).content()
+
+    # if the user has not submitted, make new submission
     sub = data["sub"]
+
+    # get grades
     grade = auto_grade(exam, sub)
 
-    try:
-        # create an answerSheet
-        new_ans_sheet = create_ans_sheet({
-            "student_id": student_id,
-            "exam_id": data["exam_id"]
-        })
+    # create a new sheet
+    new_ans_sheet = create_ans_sheet({
+        STUDENT_ID: student_id,
+        EXAM_ID: exam_id
+    })
 
-        # Create answers and add them into sheets
-        for ans in sub:
-            _ = create_ans({
-                "student_id": student_id,
-                "ques_id": ans["ques_id"],
-                "ans": ans["ans"]
-            }, sheet=new_ans_sheet)
+    # sheet creation check
+    if not new_ans_sheet:
+        return Response(
+            500,
+            "Unable to create new answer sheet"
+        ).content()
 
-        # Create report
-        _ = create_report({
-            "student_id": student_id,
-            "exam_id": exam_id,
-            "sheet_id": new_ans_sheet.Sheet_ID,
-            "grade": grade
-        })
+    for ans in sub:
+        new_ans = create_ans({
+            STUDENT_ID: student_id,
+            QUESTION_ID: ans[QUESTION_ID],
+            ANSWER: ans[ANSWER]
+        }, sheet=new_ans_sheet)
 
-        res = Response(
-            200,
-            "Exam submitted successfully"
-        )
+        # ans creation check
+        if not new_ans:
+            return Response(
+                500,
+                "Unable to create new answers"
+            ).content()
 
-        return res.content()
-    except:
-        res = Response(
+    new_report = create_report({
+        STUDENT_ID: student_id,
+        EXAM_ID: exam_id,
+        SHEET_ID: new_ans_sheet.Sheet_ID,
+        GRADE: grade
+    })
+
+    # report creation check
+    if not new_report:
+        return Response(
+            500,
+            "Unable to create new report"
+        ).content()
+
+    return Response(
+        200,
+        "Exam submitted successfully"
+    ).content()
+
+
+@app.route('/api/check_sub', methods=["POST"])
+@jwt_required
+def api_check_sub():
+    """ End-point for checking if an exam has been submitted by the student
+            ---
+            description: Check exam submission
+            post:
+                description: Check exam submission
+                requestBody:
+                    description : Request body
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    exam_id:
+                                        type: integer
+                                        description: ID of the exam whose grade you want to see
+                                        example: 1
+                                        required: true
+                                    student_id:
+                                        type: integer
+                                        description: ID of the student whose submission you want to check
+                                        example: 45
+                                        required: false
+
+                responses:
+                    200:
+                        description: Successful display
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 200
+                                        message:
+                                            type: integer
+                                            example: Fetched exam successfully or Exam not submitted
+                                        submitted:
+                                            type: string
+                                            example: True or False
+
+                    400:
+                        description: Bad Request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 400
+                                        message:
+                                            type: string
+                    401:
+                        description: Unauthorized request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Unauthorized request
+            """
+    if not current_user.is_authenticated:
+        return ErrorResponse(401).content()
+
+    data = request.get_json()
+    stud_id = data.get(STUDENT_ID)
+    if not stud_id:
+        stud_id = current_user.User_ID
+
+    exam = get_exam(data[EXAM_ID])
+    if not exam:
+        return Response(
             400,
-            "The exam is already submitted"
-        )
-        return res.content()
+            "Exam does not exists"
+        ).content()
+    res = Response(200, "").content()
+    if check_sub_exam(data[EXAM_ID], stud_id):
+        res["message"] = "Fetched exam successfully"
+        res["submitted"] = "True"
+    else:
+        res["message"] = "Exam not submitted"
+        res["submitted"] = "False"
+
+    return res
 
 
 # Exam available to a user in a selected module
@@ -1026,7 +1293,7 @@ def login():
 
     del data["username"]
     password = data['password']
-    #user = UserInfo.query.filter_by(Username=username).one()
+    # user = UserInfo.query.filter_by(Username=username).one()
     user = get_user(uname=username)
     if not user:
         return ErrorResponse(404).content()

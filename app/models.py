@@ -57,6 +57,7 @@ class UserInfo(UserMixin, db.Model):
     Pref_table = rel_obj.one_to_one('UserInfo', 'FC_Preference')  # 1 student has 1 pref table
     Discussions = rel_obj.one_to_many('UserInfo', 'Discussion')  # 1 user can have many discussions
     Replies = rel_obj.one_to_many('UserInfo', 'DiscussionThread')  # 1 user can have many replies
+    Submitted_Exams = rel_obj.one_to_many('UserInfo','StudentAnswerSheet')
 
     Last_Login = Column(db.DateTime, default=datetime.now())
     Login_password = Column(String(128), nullable=False)

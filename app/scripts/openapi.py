@@ -26,8 +26,10 @@ def make_doc():
         spec.path(view=add_module)
         spec.path(view=api_create_exam)
         spec.path(view=api_get_exams)
-        spec.path(view=submit_exam)
-        spec.path(view=view_grade)
+        spec.path(view=api_submit_exam)
+        spec.path(view=api_check_sub)
+        spec.path(view=api_view_grade)
+        spec.path(view=api_view_grades)
 
     jwt_scheme = {
         "type": "http",

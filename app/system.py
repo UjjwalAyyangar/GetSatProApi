@@ -33,8 +33,9 @@ def auto_grade(Exam, Submission):
         if user_ans == cor_ans:
             count += 1
 
-    grade = (float(count) / float(total)) * 100
-
+    print(total)
+    #grade = (float(count) / float(total)) * 100
+    grade = 0.0
     return grade
 
 
@@ -57,13 +58,13 @@ def complete_request(data):
 
 
 class Response():
-    def __init__(self, code=None, msg=None):
+    def __init__(self, code=200, msg=None):
         self.code = code
         self.msg = msg
 
     def content(self):
         return {
-            'status': self.code,
+            'Status': self.code,
             'message': self.msg
         }
 

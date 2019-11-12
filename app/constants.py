@@ -51,3 +51,5 @@ FLASHCARD_SET_ID = "set_id"
 FLASHCARD_SET_NAME = "set_name"
 FLASHCARD_ID = "fc_id"
 FLASHCARD_DIFFICULTY = "diff"
+
+STATUS = "Status"

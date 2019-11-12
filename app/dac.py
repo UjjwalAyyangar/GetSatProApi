@@ -63,7 +63,7 @@ def create_user(data):
     :return: None if there was trouble creating a user, a UserInfo model object otherwise
     """
     pwd = flask_bcrypt.generate_password_hash(data.get('password'))
-    print(pwd)
+
     new_user = UserInfo(
         Username=data[USERNAME],
         Login_password=pwd,
@@ -74,6 +74,7 @@ def create_user(data):
         Role_ID=int(data[ROLE_ID])
     )
 
+    print(new_user)
     return insert(new_user)
 
 
@@ -133,6 +134,15 @@ def get_exams(mod_id=None):
             return exams
     except:
         return None
+
+
+def check_sub_exam(exam_id, stud_id=None):
+    if not stud_id:
+        stud_id = current_user.User_ID
+    return db.session.query(
+        StudentAnswerSheet.Exam_ID,
+        StudentAnswerSheet.Student_ID).filter_by(
+        Exam_ID=exam_id, Student_ID=stud_id).scalar() is not None
 
 
 def create_exam(data):
