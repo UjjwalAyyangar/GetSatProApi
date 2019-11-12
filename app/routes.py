@@ -238,6 +238,7 @@ def list_students():
     """
     if current_user.is_authenticated:
         students = get_users(1)
+        print(students)
         if students:
             res = Response(
                 200,
@@ -255,8 +256,8 @@ def list_students():
 
                 stud_list.append(temp)
 
-            res[STUDENTS] = stud_list
-            return res
+            ret[STUDENTS] = stud_list
+            return ret
         else:
             return Response(
                 200,
