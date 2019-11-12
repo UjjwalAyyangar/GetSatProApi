@@ -39,9 +39,12 @@ def insert(field):
         return None
 
 
-def get_user(user_id):
+def get_user(uname=None, user_id=None):
     try:
-        return UserInfo.query.filter_by(User_ID=user_id).one()
+        if uname:
+            return UserInfo.query.filter_by(Username=uname).one()
+        else:
+            return UserInfo.query.filter_by(User_ID=user_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 
@@ -51,7 +54,6 @@ def get_users(role_id):
         return UserInfo.query.filter_by(Role_ID=role_id).all()
     except:
         return None
-
 
 
 def create_user(data):
@@ -115,6 +117,24 @@ def get_exam(id):
         return None
 
 
+def get_exams(mod_id=None):
+    try:
+        if mod_id:
+            module = Module.query.filter_by(Module_ID=mod_id).one()
+            exams = module.Exams.all()
+            return exams
+        else:
+            modules = Module.query.all()
+            exams = []
+            for module in modules:
+                t_exams = module.Exams.all()
+                exams.extend(t_exams)
+
+            return exams
+    except:
+        return None
+
+
 def create_exam(data):
     """
 
@@ -134,10 +154,10 @@ def create_exam(data):
     if new_exam:
         for question in questions:
             temp_data = {
-                "exam_id": new_exam.Exam_ID,
-                "question": question["question"],
-                "options": question["options"],
-                "correct_ans": question["correct_ans"]
+                EXAM_ID: new_exam.Exam_ID,
+                QUESTION: question[QUESTION],
+                QUESTION_OPTIONS: question[QUESTION_OPTIONS],
+                QUESTION_ANS: question[QUESTION_ANS]
             }
             _ = create_question(temp_data)
 
@@ -271,4 +291,3 @@ def get_fcpref(data):
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
-

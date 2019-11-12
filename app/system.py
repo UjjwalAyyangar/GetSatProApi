@@ -78,8 +78,10 @@ class ErrorResponse(Response):
         standard = {
             405: "Method not allowed",
             400: "Bad Request",
-            401: "Unauthorized request"
+            401: "Unauthorized request",
+            404: "Not found"
         }
+        return standard[code]
 
 """
 Some of the issues I am facing

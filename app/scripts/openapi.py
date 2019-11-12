@@ -24,7 +24,8 @@ def make_doc():
         spec.path(view=logout)
         spec.path(view=list_students)
         spec.path(view=add_module)
-        spec.path(view=create_exam)
+        spec.path(view=api_create_exam)
+        spec.path(view=api_get_exams)
         spec.path(view=submit_exam)
         spec.path(view=view_grade)
 

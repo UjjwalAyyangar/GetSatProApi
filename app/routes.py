@@ -235,6 +235,19 @@ def list_students():
                                 message:
                                     type: string
                                     example: Unauthorized request
+            404:
+                description: Students not found
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                Status:
+                                    type: string
+                                    example: 404
+                                message:
+                                    type: string
+                                    example: Not found
     """
     if current_user.is_authenticated:
         students = get_users(1)
@@ -259,10 +272,7 @@ def list_students():
             ret[STUDENTS] = stud_list
             return ret
         else:
-            return Response(
-                200,
-                "No students found"
-            ).content()
+            return ErrorResponse(404).content()
     else:
         return ErrorResponse(401).content()
 
@@ -353,7 +363,7 @@ def add_module():
 
 @app.route('/api/create_exam', methods=["POST"])
 @jwt_required
-def create_exam():
+def api_create_exam():
     """ End-point for creating exams.
         ---
         description: Exam creation
@@ -670,19 +680,91 @@ def submit_exam():
 
 # Exam available to a user in a selected module
 @app.route('/api/get_exams')
+@app.route('/api/get_exams/<int:module_id>')
 @jwt_required
-def get_exams():
+def api_get_exams(module_id=None):
+    """ End-point for getting list of Exams.
+       ---
+       description: List of Exams. [Jwt]
+       get:
+           description: List of Exams
+           parameters:
+            - in: path
+              name: mod_id
+              schema:
+                type: integer
+              required: False
+              description: Only required if you want to fetch the exams of a module. [OPTIONAL]
+           responses:
+               200:
+                   description: Successfully fetched the list of students
+                   content:
+                       application/json:
+                           schema:
+                               type: object
+                               properties:
+                                   Status:
+                                       type: string
+                                       example: 200
+                                   message:
+                                       type: string
+                                       example: Successfully fetched the list of students
+                                   exams:
+                                       type: array
+                                       description: A list of exams
+                                       items:
+                                           type: object
+                                           description: Exam list
+                                           properties:
+                                               exam_id:
+                                                   type: integer
+                                                   example: 1
+                                                   description: Id of the exam of the student
+                                               exam_name:
+                                                   type: string
+                                                   example: Sample
+                                                   description: The name of the exam
+
+               404:
+                   description: Exams not found
+                   content:
+                       application/json:
+                           schema:
+                               type: object
+                               properties:
+                                   Status:
+                                       type: string
+                                       example: 404
+                                   message:
+                                       type: string
+                                       example: Not found
+               401:
+                   description: Unauthorized request. Cannot be made without login
+                   content:
+                       application/json:
+                           schema:
+                               type: object
+                               properties:
+                                   Status:
+                                       type: string
+                                       example: 401
+                                   message:
+                                       type: string
+                                       example: Unauthorized request
+       """
     if not current_user.is_authenticated:
         res = ErrorResponse(401)
         return res.content()
 
-    data = request.get_json()
-
-    module = get_module(data["mod_id"]).one()
-
-    Exams = module.Exams.all()
+    if module_id:
+        Exams = get_exams(module_id)
+    else:
+        Exams = get_exams()
 
     exam_list = []
+
+    if not Exams:
+        return ErrorResponse(404).content()
 
     for exam in Exams:
         temp = {
@@ -944,7 +1026,11 @@ def login():
 
     del data["username"]
     password = data['password']
-    user = UserInfo.query.filter_by(Username=username).one()
+    #user = UserInfo.query.filter_by(Username=username).one()
+    user = get_user(uname=username)
+    if not user:
+        return ErrorResponse(404).content()
+
     print(user)
 
     if user and flask_bcrypt.check_password_hash(user.Login_password, password):
