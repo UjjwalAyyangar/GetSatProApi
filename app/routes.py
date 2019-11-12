@@ -14,9 +14,15 @@ from flask_jwt_extended import (
 from app.system import *
 from app.dac import *
 
+
+@app.route('/base', methods=["GET", "POST"])
+def function():
+    data = request.get_json()
+
+
 # from app.constants import *
 
-#app = create_app()
+# app = create_app()
 
 @app.route('/')
 @app.route('/doc')
@@ -168,6 +174,96 @@ def show_user(id):
         'lastloggedin': user.Last_Login,
     }
     return jsonify(data)
+
+
+@app.route('/api/list_students')
+@jwt_required
+def list_students():
+    """ End-point for getting list of students.
+    ---
+    description: List of students. [Jwt]
+    get:
+        description: List of students.
+
+        responses:
+            200:
+                description: Successfully fetched the list of students
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                Status:
+                                    type: string
+                                    example: 200
+                                message:
+                                    type: string
+                                    example: Successfully fetched the list of students
+                                students:
+                                    type: array
+                                    description: A list of dictionary of students
+                                    items:
+                                        type: object
+                                        description: Student list
+                                        properties:
+                                            username:
+                                                type: string
+                                                example: ObiWan
+                                                description: Username of the student
+                                            user_id:
+                                                type: string
+                                                example: 1234
+                                                description: User ID of the student
+                                            fname:
+                                                type: string
+                                                example: Obi
+                                                description: First name of the student
+                                            lname:
+                                                type: string
+                                                example: Wan
+                                                description: Last name of the student
+            401:
+                description: Unauthorized request
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                Status:
+                                    type: string
+                                    example: 401
+                                message:
+                                    type: string
+                                    example: Unauthorized request
+    """
+    if current_user.is_authenticated:
+        students = get_users(1)
+        if students:
+            res = Response(
+                200,
+                "Successfully fetched the list of students"
+            )
+            ret = res.content()
+            stud_list = []
+            for student in students:
+                temp = {
+                    USERNAME: student.Username,
+                    USER_FNAME: student.First_Name,
+                    USER_LNAME: student.Last_Name,
+                    USER_ID: student.User_ID
+                }
+
+                stud_list.append(temp)
+
+            res[STUDENTS] = stud_list
+            return res
+        else:
+            return Response(
+                200,
+                "No students found"
+            ).content()
+    else:
+        return ErrorResponse(401).content()
 
 
 @app.route('/api/add_module', methods=['POST'])
@@ -825,7 +921,9 @@ def login():
                                             type: string
                                             example: Invalid credentials
             """
+
     data = request.get_json()
+
     # return data
 
     if data is None:
@@ -845,7 +943,9 @@ def login():
 
     del data["username"]
     password = data['password']
-    user = UserInfo.query.filter_by(Username=username).first()
+    user = UserInfo.query.filter_by(Username=username).one()
+    print(user)
+
     if user and flask_bcrypt.check_password_hash(user.Login_password, password):
         access_token = create_access_token(identity=data)
         refresh_token = create_refresh_token(identity=data)
@@ -947,4 +1047,3 @@ def logout():
     logout_user()
 
     return ret
-

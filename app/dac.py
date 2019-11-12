@@ -46,7 +46,20 @@ def get_user(user_id):
         return None
 
 
+def get_users(role_id):
+    try:
+        return UserInfo.query.filter_by(Role_ID=role_id).all()
+    except:
+        return None
+
+
+
 def create_user(data):
+    """
+
+    :param data: a dictionary that contains the information about a new user
+    :return: None if there was trouble creating a user, a UserInfo model object otherwise
+    """
     pwd = flask_bcrypt.generate_password_hash(data.get('password'))
     print(pwd)
     new_user = UserInfo(
@@ -63,6 +76,11 @@ def create_user(data):
 
 
 def get_module(mod_id):
+    """
+
+    :param mod_id: the id of the module you want to get
+    :return: None if the modules does not exist, a Module model object otherwise
+    """
     try:
         return Module.query.filter_by(Module_ID=mod_id)
     except sqlalchemy.orm.exc.NoResultFound:
@@ -70,6 +88,11 @@ def get_module(mod_id):
 
 
 def create_module(data):
+    """
+
+    :param data: a dictionary that contains the information about a new module
+    :return: None if there was trouble creating a module, a Module model object otherwise
+    """
     new_module = Module(
         Module_Name=data[MODULE_NAME]
     )
@@ -78,6 +101,11 @@ def create_module(data):
 
 
 def get_exam(id):
+    """
+
+    :param id:
+    :return:
+    """
     try:
         return Exam.query.filter_by(
             Exam_ID=id
@@ -88,6 +116,11 @@ def get_exam(id):
 
 
 def create_exam(data):
+    """
+
+    :param data:  a dictionary that contains the information about a new exam
+    :return: None if there was trouble creating an exam, an exam model object otherwise
+    """
     new_exam = Exam(
         Exam_Name=data[EXAM_NAME],
         Module_ID=data[MODULE_ID]
@@ -114,6 +147,11 @@ def create_exam(data):
 
 
 def create_question(data):
+    """
+
+    :param data: a dictionary that contains the information about a new question
+    :return: None if there was trouble creating a question, a Question model object otherwise
+    """
     new_question = ExamQuestion(
         Exam_ID=data[EXAM_ID],
         Question=data[QUESTION],
@@ -127,6 +165,11 @@ def create_question(data):
 
 
 def create_ans_sheet(data):
+    """
+
+    :param data: a dictionary that contains the information about a new answer sheet
+    :return:
+    """
     new_ans_sheet = StudentAnswerSheet(
         Student_ID=data[STUDENT_ID],
         Exam_ID=data[EXAM_ID]
@@ -210,19 +253,22 @@ def get_flashcard_set(data):
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 
+
 def get_flashcard(data):
     try:
         return Flashcard.query.filter_by(
-            FC_ID = data[FLASHCARD_ID]
+            FC_ID=data[FLASHCARD_ID]
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 
+
 def get_fcpref(data):
     try:
         return FC_Preference.query.filter_by(
-            Student_ID = data[STUDENT_ID],
-            FC_ID = data[FLASHCARD_ID],
+            Student_ID=data[STUDENT_ID],
+            FC_ID=data[FLASHCARD_ID],
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
+

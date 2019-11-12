@@ -5,8 +5,8 @@ from flask_login import current_user, login_user, logout_user
 def get_difficulty(num):
     diff = {
         1: "Easy",
-        2 : "Medium",
-        3 : "Hard",
+        2: "Medium",
+        3: "Hard",
     }
     return diff[num]
 
@@ -48,7 +48,6 @@ def is_User(usr_type):
         return 400
 
 
-
 def complete_request(data):
     for key in data:
         if not data[key]:
@@ -73,7 +72,7 @@ class ErrorResponse(Response):
     def __init__(self, code=None):
         self.code = code
         self.msg = self.get_standard(code)
-        super(ErrorResponse,self).__init__(self.code, self.msg)
+        super(ErrorResponse, self).__init__(self.code, self.msg)
 
     def get_standard(self, code):
         standard = {

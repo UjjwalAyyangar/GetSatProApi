@@ -43,7 +43,6 @@ class UserRole(db.Model):
     User_Type = Column(String(50), unique=True)
     UserInfo = rel_obj.one_to_many('UserRole', 'UserInfo')  # A user role can point to many users
 
-
 class UserInfo(UserMixin, db.Model):
     User_ID = Column(Integer, primary_key=True)
     First_Name = Column(String(250), nullable=False)
@@ -119,7 +118,6 @@ class Exam(db.Model):
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
 
     Reports = rel_obj.one_to_many('Exam', 'StudentReport')  # 1 exam will have many reports
-
 
 """
 {

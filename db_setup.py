@@ -1,6 +1,7 @@
 from app.models import *
 from app import db
 
+
 def add_fields(fields):
     for field in fields:
         db.session.add(field)
@@ -17,7 +18,5 @@ Admin_Role = UserRole(User_Type='Admin')
 # Student
 
 
-#def setup():
+# def setup():
 add_fields([Student_Role, Tutor_Role, Admin_Role])
-
-

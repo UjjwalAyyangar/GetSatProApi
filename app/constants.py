@@ -11,6 +11,7 @@ ROLE_ID = "role_id"
 ROLE_TYPE = "role_type"
 
 # User Info
+STUDENTS = "students"
 USER_FNAME = "fname"
 USER_LNAME = "lname"
 USER_PWD = "password"
