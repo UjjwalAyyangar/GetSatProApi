@@ -45,42 +45,43 @@ def register():
                 application/json:
                     schema:
                         type: object
+                        required:
+                            - username
+                            - fname
+                            - lname
+                            - password
+                            - email
+                            - phone
+                            - role_id
                         properties:
                             username:
                                 type: string
                                 description: Username
                                 example: ObiWan
-                                required: true
                             fname:
                                 type: string
                                 description: First name of the user
                                 example: Obi
-                                required: true
                             lname:
                                 type: string
                                 description: Last name of the user
                                 example: Wan
-                                required: true
                             password:
                                 type: string
                                 description: The password that the user wants to set
                                 example: Ob12W@n
-                                required: true
                             email:
                                 type: string
                                 description: Email id of the user
                                 example: obi@wan.com
-                                required: true
                             phone:
                                 type: string
                                 description: Phone number of the user
                                 example: 999-999-9999
-                                required: true
                             role_id:
                                 type: string
                                 description: Used to denote the type of user. 1 = Student, 2 = Tutor, 3 = Admin
                                 example: 1
-                                required: true
         responses:
             200:
                 description: Successful creation of a user
@@ -176,9 +177,12 @@ def show_user(id):
     return jsonify(data)
 
 
+# is_admin_tutor
+
 @app.route('/api/list_students')
 @jwt_required
-def list_students():
+@is_admin_tutor
+def api_list_students():
     """ End-point for getting list of students.
     ---
     description: List of students. [Jwt]
@@ -249,37 +253,35 @@ def list_students():
                                     type: string
                                     example: Not found
     """
-    if current_user.is_authenticated:
-        students = get_users(1)
-        print(students)
-        if students:
-            res = Response(
-                200,
-                "Successfully fetched the list of students"
-            )
-            ret = res.content()
-            stud_list = []
-            for student in students:
-                temp = {
-                    USERNAME: student.Username,
-                    USER_FNAME: student.First_Name,
-                    USER_LNAME: student.Last_Name,
-                    USER_ID: student.User_ID
-                }
+    students = get_users(1)
+    print(students)
+    if students:
+        res = Response(
+            200,
+            "Successfully fetched the list of students"
+        )
+        ret = res.content()
+        stud_list = []
+        for student in students:
+            temp = {
+                USERNAME: student.Username,
+                USER_FNAME: student.First_Name,
+                USER_LNAME: student.Last_Name,
+                USER_ID: student.User_ID
+            }
 
-                stud_list.append(temp)
+            stud_list.append(temp)
 
-            ret[STUDENTS] = stud_list
-            return ret
-        else:
-            return ErrorResponse(404).content()
+        ret[STUDENTS] = stud_list
+        return ret
     else:
-        return ErrorResponse(401).content()
+        return ErrorResponse(404).content()
 
 
 @app.route('/api/add_module', methods=['POST'])
 @jwt_required
-def add_module():
+@is_admin
+def api_add_module():
     """ End-point for adding new modules.
             ---
             description: Add module
@@ -291,12 +293,13 @@ def add_module():
                         application/json:
                             schema:
                                 type: object
+                                required:
+                                    - mod_name
                                 properties:
                                     mod_name:
                                         type: string
                                         description: The name of the module that needs to be added
                                         example: maths
-                                        required: true
                 responses:
                     200:
                         description: Successful creation of a new module
@@ -326,18 +329,6 @@ def add_module():
                                             example: Only an admin is allowed to add modules.
             """
 
-    # Only an admin is allowed to add new modules
-
-    admin_check = is_User("Admin")
-
-    if admin_check != 200:
-        res = ErrorResponse(admin_check)
-
-        if admin_check == 401:
-            res.msg = "Only an admin is allowed to add new modules"
-
-        return res.content()
-
     data = request.get_json()
     if data is None:
         abort(404)
@@ -359,11 +350,97 @@ def add_module():
         return res.content()
 
 
+@app.route('/api/delete', methods=['POST'])
+@jwt_required
+@is_admin
+def api_del():
+    """ End-point for deleting things.
+            ---
+            description: Deletion
+            post:
+                description: Deletion
+                requestBody:
+                    description : Request body
+                    required: true
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - model_name
+                                    - model_id
+                                properties:
+                                    model_name:
+                                        type: string
+                                        description: required
+                                        example: Module (or Exam or User or Discussion or Flashcard)
+                                    model_id:
+                                        type: integer
+                                        example: 234
+                responses:
+                    200:
+                        description: Successfully deleted
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: Deleted successfully
+                    401:
+                        description: Unauthorized request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: You are not authorized to make this request.
+                    500:
+                        description: Bad Method
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 405
+                                        message:
+                                            type: string
+                                            example: Internal Server Error
+            """
+    data = request.get_json()
+    model_id = data[MODEL_ID]
+    model_name = data[MODEL_NAME]
+    field = get_model_field(model_name, model_id)
+    if not field:
+        return ErrorResponse(404).content()
+
+    deleted = delete(field)
+    if not deleted:
+        return ErrorResponse(500).content()
+
+    return Response(
+        200,
+        "Successfully deleted."
+    ).content()
+
+
 # Exams
 # Create Exam Request
 
 @app.route('/api/create_exam', methods=["POST"])
 @jwt_required
+@is_admin_tutor
 def api_create_exam():
     """ End-point for creating exams.
         ---
@@ -376,17 +453,19 @@ def api_create_exam():
                     application/json:
                         schema:
                             type: object
+                            required:
+                                - mod_id
+                                - exam_name
+                                - exam
                             properties:
                                 mod_id:
                                     type: integer
                                     description: Module ID
                                     example: 1
-                                    required: true
                                 exam_name:
                                     type: string
                                     description: Name of the exam
                                     example: Midterm
-                                    required: true
                                 exam:
                                     type: array
                                     description : An array of questions
@@ -437,16 +516,11 @@ def api_create_exam():
                                         example: Only Admins or Tutors can make this request.
         """
     data = request.get_json()
-    ad_tut_check = is_User("Admin") or is_User("Tutor")
-    if ad_tut_check != 200:
-        res = ErrorResponse(ad_tut_check)
-
-        if ad_tut_check == 401:
-            res.msg = "Only Admins or Tutors can make this request"
-
-        return res.content()
 
     exam = create_exam(data)
+    if not exam:
+        return ErrorResponse(500).content()
+
     res = Response(
         200,
         "Exam was created successfully"
@@ -470,6 +544,8 @@ def api_view_grade():
                     application/json:
                         schema:
                             type: object
+                            required:
+                                - exam_id
                             properties:
                                 exam_id:
                                     type: integer
@@ -695,6 +771,7 @@ def api_view_grades():
 
 @app.route('/api/submit_exam', methods=["POST"])
 @jwt_required
+@is_student
 def api_submit_exam():
     """ End-point for submitting exams.
             ---
@@ -707,16 +784,17 @@ def api_submit_exam():
                         application/json:
                             schema:
                                 type: object
+                                required:
+                                    - exam_id
+                                    - sub
                                 properties:
                                     exam_id:
                                         type: integer
                                         description: ID of the exam which you want to submit
                                         example: 1
-                                        required: true
                                     sub:
                                         type: array
                                         description: An array of Questions and Answers
-                                        required: true
                                         items:
                                             type: object
                                             properties:
@@ -770,13 +848,6 @@ def api_submit_exam():
                                             type: string
                                             example: The exam is already submitted.
             """
-    stud_check = is_User("Student")
-    if stud_check != 200:
-        res = ErrorResponse(401)
-        if stud_check == 401:
-            res.msg = "Only a student can submit an exam."
-
-        return res.content()
 
     data = request.get_json()
     student_id = current_user.User_ID
@@ -864,6 +935,9 @@ def api_check_sub():
                         application/json:
                             schema:
                                 type: object
+                                required:
+                                    - exam_id
+                                    - student_id
                                 properties:
                                     exam_id:
                                         type: integer
@@ -955,12 +1029,13 @@ def api_get_exams(module_id=None):
        description: List of Exams. [Jwt]
        get:
            description: List of Exams
+
            parameters:
             - in: path
               name: mod_id
               schema:
                 type: integer
-              required: False
+                required: False
               description: Only required if you want to fetch the exams of a module. [OPTIONAL]
            responses:
                200:
@@ -1057,7 +1132,7 @@ def api_get_exams(module_id=None):
 
 @app.route('/api/create_discussion', methods=["POST"])
 @jwt_required
-def create_discussion():
+def api_create_discussion():
     data = request.get_json()
     data["user_id"] = current_user.User_ID
     new_discus = create_discussion(data)
@@ -1078,7 +1153,7 @@ def create_discussion():
 
 @app.route('/api/create_discus_thread', methods=["POST"])
 @jwt_required
-def create_discus_thread():
+def api_create_discus_thread():
     data = request.get_json()
     data["user_id"] = current_user.User_ID
     new_dthread = create_discus_thread(data)
@@ -1097,7 +1172,7 @@ def create_discus_thread():
 
 @app.route('/api/view_discussion')
 @jwt_required
-def view_discussion():
+def api_view_discussion():
     data = request.get_json()
     discuss = get_discussion(data)
 
@@ -1129,7 +1204,7 @@ def view_discussion():
 # Flashcards
 @app.route('/api/view_flashcard')
 @jwt_required
-def view_flashcards():
+def api_view_flashcards():
     data = request.get_json()
     fset = get_flashcard_set(data)
 
@@ -1174,7 +1249,7 @@ def view_flashcards():
 
 @app.route('/api/set_pref')
 @jwt_required
-def set_pref():
+def api_set_pref():
     data = request.get_json()
     fc_pref = get_fcpref({
         "stud_id": current_user.User_ID,

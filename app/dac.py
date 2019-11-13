@@ -9,6 +9,39 @@ from flask_login import current_user
 from app.constants import *
 
 
+def get_model_obj(model_name):
+    model = {
+        'Module': Module,
+        'UserInfo': UserInfo,
+        'UserRole': UserRole,
+        'Discussion': Discussion,
+        'D_thread': DiscussionThread,
+        'Flashcard': Flashcard,
+        'FlashcardSet': FlashcardSet
+    }
+
+    return model[model_name]
+
+
+def get_model_field(model_name, data):
+    if model_name == 'Module':
+        return get_module(data)
+    elif model_name == 'User':
+        return get_user(data)
+    elif model_name == 'Discussion':
+        return get_discussion(data)
+    elif model_name == 'Exam':
+        return get_exam(data)
+    elif model_name == 'Flashcard_set':
+        return get_flashcard_set(data)
+    elif model_name == 'Flashcard':
+        return get_flashcard(data)
+    elif model_name == "Flashcard_pref":
+        return get_fcpref(data)
+    else:
+        return None
+
+
 def exists(name, obj, res):
     """
     :param name: The name of the object - Discussion, Module, User, etc
@@ -39,12 +72,28 @@ def insert(field):
         return None
 
 
+def delete(field):
+    """
+
+    :param field: the object of the field that needs to be deleted
+    :return: True if deletion was successful, False otherwise
+    """
+    try:
+        db.session.delete(field)
+        db.session.commit()
+        return True
+    except sqlalchemy.orm.exc.NoResultFound:
+        return False
+
+
 def get_user(uname=None, user_id=None):
     try:
         if uname:
             return UserInfo.query.filter_by(Username=uname).one()
-        else:
+        elif user_id:
             return UserInfo.query.filter_by(User_ID=user_id).one()
+        else:
+            return None
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 
@@ -85,7 +134,7 @@ def get_module(mod_id):
     :return: None if the modules does not exist, a Module model object otherwise
     """
     try:
-        return Module.query.filter_by(Module_ID=mod_id)
+        return Module.query.filter_by(Module_ID=mod_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 

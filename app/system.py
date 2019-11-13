@@ -1,5 +1,6 @@
 from app.models import *
 from flask_login import current_user, login_user, logout_user
+from functools import wraps
 
 
 def get_difficulty(num):
@@ -34,9 +35,69 @@ def auto_grade(Exam, Submission):
             count += 1
 
     print(total)
-    #grade = (float(count) / float(total)) * 100
+    # grade = (float(count) / float(total)) * 100
     grade = 0.0
     return grade
+
+
+# decorator
+def is_admin(function):
+    @wraps(function)
+    def wrap():
+        if is_User('Admin') == 200:
+            return function()
+        else:
+            return Response(
+                401,
+                "Only admins are allowed to make this request."
+            ).content()
+
+    return wrap
+
+
+# decorator
+def is_tutor(function):
+    @wraps(function)
+    def wrap():
+        if is_User('Tutor') == 200:
+            return function()
+        else:
+            return Response(
+                401,
+                "Only tutors are allowed to make this request."
+            ).content()
+
+    return wrap
+
+
+# decorator
+def is_admin_tutor(function):
+    @wraps(function)
+    def wrap():
+        if is_User('Tutor') == 200 or is_User('Admin') == 200:
+            return function()
+        else:
+            return Response(
+                401,
+                "Only admins and tutors are allowed to make this request."
+            ).content()
+
+    return wrap
+
+
+# decorator
+def is_student(function):
+    @wraps(function)
+    def wrap():
+        if is_User('Student') == 200:
+            return function()
+        else:
+            return Response(
+                400,
+                "Only students can make this type of requests."
+            ).content()
+
+    return wrap
 
 
 def is_User(usr_type):
@@ -80,9 +141,11 @@ class ErrorResponse(Response):
             405: "Method not allowed",
             400: "Bad Request",
             401: "Unauthorized request",
-            404: "Not found"
+            404: "Not found",
+            500: "Internal Server Error"
         }
         return standard[code]
+
 
 """
 Some of the issues I am facing

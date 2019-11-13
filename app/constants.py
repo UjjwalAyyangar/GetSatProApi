@@ -1,5 +1,8 @@
 # To keep the api keys consistent
 
+
+MODEL_ID = "model_id"
+MODEL_NAME = "model_name"
 # User IDs
 USER_ID = 'user_id'
 STUDENT_ID = 'stud_id'
