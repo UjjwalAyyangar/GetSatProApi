@@ -22,8 +22,9 @@ def make_doc():
         spec.path(view=register)
         spec.path(view=login)
         spec.path(view=logout)
-        spec.path(view=api_list_students)
+        spec.path(view=api_get_students)
         spec.path(view=api_add_module)
+        spec.path(view=api_get_mods)
         spec.path(view=api_del)
         spec.path(view=api_create_exam)
         spec.path(view=api_get_exams)
@@ -31,6 +32,8 @@ def make_doc():
         spec.path(view=api_check_sub)
         spec.path(view=api_view_grade)
         spec.path(view=api_view_grades)
+        spec.path(view=api_create_discussion)
+        spec.path(view=api_create_discus_thread)
 
     jwt_scheme = {
         "type": "http",

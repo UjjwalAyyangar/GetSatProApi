@@ -25,7 +25,7 @@ PHONE = "phone"
 # Module
 MODULE_ID = "mod_id"
 MODULE_NAME = "mod_name"
-
+MODULE_LIST = "mod_list"
 # Exams
 EXAM_ID = "exam_id"
 EXAM_NAME = "exam_name"

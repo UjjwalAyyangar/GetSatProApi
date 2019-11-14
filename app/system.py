@@ -1,6 +1,7 @@
 from app.models import *
 from flask_login import current_user, login_user, logout_user
 from functools import wraps
+from flask import jsonify
 
 
 def get_difficulty(num):
@@ -41,6 +42,18 @@ def auto_grade(Exam, Submission):
 
 
 # decorator
+def authenticated(function):
+    @wraps(function)
+    def wrap():
+        if current_user.is_authenticated:
+            return function()
+        else:
+            return ErrorResponse(400).content(), 400
+
+    return wrap
+
+
+# decorator
 def is_admin(function):
     @wraps(function)
     def wrap():
@@ -50,7 +63,7 @@ def is_admin(function):
             return Response(
                 401,
                 "Only admins are allowed to make this request."
-            ).content()
+            ).content(), 401
 
     return wrap
 
@@ -65,7 +78,7 @@ def is_tutor(function):
             return Response(
                 401,
                 "Only tutors are allowed to make this request."
-            ).content()
+            ).content(), 401
 
     return wrap
 
@@ -80,7 +93,7 @@ def is_admin_tutor(function):
             return Response(
                 401,
                 "Only admins and tutors are allowed to make this request."
-            ).content()
+            ).content(), 401
 
     return wrap
 
@@ -93,9 +106,9 @@ def is_student(function):
             return function()
         else:
             return Response(
-                400,
+                401,
                 "Only students can make this type of requests."
-            ).content()
+            ).content(), 401
 
     return wrap
 
@@ -107,7 +120,7 @@ def is_User(usr_type):
         else:
             return 401
     else:
-        return 400
+        return 401
 
 
 def complete_request(data):

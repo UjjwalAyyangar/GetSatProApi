@@ -15,15 +15,6 @@ from app.system import *
 from app.dac import *
 
 
-@app.route('/base', methods=["GET", "POST"])
-def function():
-    data = request.get_json()
-
-
-# from app.constants import *
-
-# app = create_app()
-
 @app.route('/')
 @app.route('/doc')
 @app.route('/index')
@@ -147,7 +138,7 @@ def register():
     )
     res = exists('User', user, res)
 
-    return res.content()
+    return res.content(), 200
 
 
 @login.user_loader
@@ -159,6 +150,7 @@ def load_user(id):
 # Get users
 @app.route('/users/<int:id>')
 @jwt_required
+@authenticated
 def show_user(id):
     user = UserInfo.query.get(id)
     if not user:
@@ -179,10 +171,10 @@ def show_user(id):
 
 # is_admin_tutor
 
-@app.route('/api/list_students')
+@app.route('/api/get_students')
 @jwt_required
 @is_admin_tutor
-def api_list_students():
+def api_get_students():
     """ End-point for getting list of students.
     ---
     description: List of students. [Jwt]
@@ -254,7 +246,6 @@ def api_list_students():
                                     example: Not found
     """
     students = get_users(1)
-    print(students)
     if students:
         res = Response(
             200,
@@ -273,14 +264,14 @@ def api_list_students():
             stud_list.append(temp)
 
         ret[STUDENTS] = stud_list
-        return ret
+        return ret, 200
     else:
-        return ErrorResponse(404).content()
+        return ErrorResponse(404).content(), 404
 
 
 @app.route('/api/add_module', methods=['POST'])
 @jwt_required
-@is_admin
+@is_admin  # checks authentication automatically
 def api_add_module():
     """ End-point for adding new modules.
             ---
@@ -342,17 +333,105 @@ def api_add_module():
 
         res = exists('Module', module, res)
 
-        return res.content()
+        return res.content(), res.code
 
     except Exception as e:
         # print(e)
         res = ErrorResponse(400)
-        return res.content()
+        return res.content(), 400
+
+
+@app.route('/api/get_modules')
+@jwt_required
+@authenticated
+def api_get_mods():
+    """ End-point for getting list of modules.
+        ---
+        description: List of modules. [Jwt]
+        get:
+            description: List of modules
+
+            responses:
+                200:
+                    description: Successfully fetched the list of students
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 200
+                                    message:
+                                        type: string
+                                        example: Successfully fetched the list of modules
+                                    modules:
+                                        type: array
+                                        description: A list of dictionary of modules
+                                        items:
+                                            type: object
+                                            description: Modules list
+                                            properties:
+                                                mod_id:
+                                                    type: integer
+                                                    example: 2
+                                                    description: ID of the module
+                                                mod_name:
+                                                    type: string
+                                                    example: Maths
+                                                    description: Name of the module
+                401:
+                    description: Unauthorized request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 401
+                                    message:
+                                        type: string
+                                        example: Unauthorized request
+                404:
+                    description: Modules not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    Status:
+                                        type: string
+                                        example: 404
+                                    message:
+                                        type: string
+                                        example: Not found
+        """
+
+    modules = get_modules()
+    if not modules:
+        return Response(404, "No modules found").content(404)
+
+    mod_list = []
+    for module in modules:
+        temp = {
+            MODULE_ID: module.Module_ID,
+            MODEL_NAME: module.Module_Name
+        }
+        mod_list.append(temp)
+
+    res = Response(
+        200,
+        "Modules fetched successfully."
+    ).content()
+
+    res[MODULE_LIST] = mod_list
+    return res, 200
 
 
 @app.route('/api/delete', methods=['POST'])
 @jwt_required
-@is_admin
+@is_admin  # Checks authentication automatically
 def api_del():
     """ End-point for deleting things.
             ---
@@ -423,16 +502,16 @@ def api_del():
     model_name = data[MODEL_NAME]
     field = get_model_field(model_name, model_id)
     if not field:
-        return ErrorResponse(404).content()
+        return ErrorResponse(404).content(), 404
 
     deleted = delete(field)
     if not deleted:
-        return ErrorResponse(500).content()
+        return ErrorResponse(500).content(), 500
 
     return Response(
         200,
         "Successfully deleted."
-    ).content()
+    ).content(), 200
 
 
 # Exams
@@ -440,7 +519,7 @@ def api_del():
 
 @app.route('/api/create_exam', methods=["POST"])
 @jwt_required
-@is_admin_tutor
+@is_admin_tutor  # checks for authentication also
 def api_create_exam():
     """ End-point for creating exams.
         ---
@@ -519,7 +598,7 @@ def api_create_exam():
 
     exam = create_exam(data)
     if not exam:
-        return ErrorResponse(500).content()
+        return ErrorResponse(500).content(), 500
 
     res = Response(
         200,
@@ -527,11 +606,12 @@ def api_create_exam():
     )
     res = exists('Exam', exam, res)
 
-    return res.content()
+    return res.content(), res.code
 
 
 @app.route('/api/view_grade', methods=["POST"])
 @jwt_required
+@authenticated
 def api_view_grade():
     """ End-point for viewing the grade of an exam.
         ---
@@ -603,9 +683,6 @@ def api_view_grade():
                                         example: Unauthorized request
         """
 
-    if not current_user.is_authenticated:
-        return ErrorResponse(401).content()
-
     data = request.get_json()
     exam_id = data[EXAM_ID]
     # print(is_User("Student"), current_user.UserRole.User_Type)
@@ -616,16 +693,16 @@ def api_view_grade():
             stud_id = data[STUDENT_ID]
         except:
             res = ErrorResponse(400)
-            return res.content()
+            return res.content(), 400
 
     # check if that exam exists
     exam = get_exam(exam_id)
     if not exam:
-        return ErrorResponse(400).content()
+        return ErrorResponse(400).content(), 400
 
     # check if the student has submitted that exam
     if not check_sub_exam(exam_id, stud_id):
-        return ErrorResponse(400).content()
+        return ErrorResponse(400).content(), 400
 
     report = get_report(stud_id, exam_id)
 
@@ -637,11 +714,12 @@ def api_view_grade():
 
     res[GRADE] = report.Grade
     res[EXAM_NAME] = exam.Exam_Name
-    return res
+    return res, 200
 
 
 @app.route('/api/view_grades', methods=["POST"])
 @jwt_required
+@authenticated
 def api_view_grades():
     """ End-point for viewing the grade of an exam.
             ---
@@ -655,7 +733,7 @@ def api_view_grades():
                             schema:
                                 type: object
                                 properties:
-                                    module_id:
+                                    mod_id:
                                         type: integer
                                         description: ID of the module, the grades of whose exam you want to see
                                         example: 1
@@ -723,8 +801,6 @@ def api_view_grades():
                                             type: string
                                             example: Unauthorized request
             """
-    if not current_user.is_authenticated:
-        return ErrorResponse(401).content()
 
     data = request.get_json()
     module_id = data.get(MODULE_ID)
@@ -736,7 +812,7 @@ def api_view_grades():
             stud_id = data[STUDENT_ID]
         except:
             res = ErrorResponse(400)
-            return res.content()
+            return res.content(), 400
 
     if module_id:
         exams = get_exams(module_id)
@@ -766,12 +842,12 @@ def api_view_grades():
 
     res["exams"] = exam_list
 
-    return res
+    return res, 200
 
 
 @app.route('/api/submit_exam', methods=["POST"])
 @jwt_required
-@is_student
+@is_student  # this ensures authentication check
 def api_submit_exam():
     """ End-point for submitting exams.
             ---
@@ -859,14 +935,14 @@ def api_submit_exam():
         return Response(
             404,
             "Exam does not exist"
-        ).content()
+        ).content(), 404
 
     # check if the user has already submitted this exam or not
     if check_sub_exam(exam_id):
         return Response(
             200,
             "Exam already submitted"
-        ).content()
+        ).content(), 200
 
     # if the user has not submitted, make new submission
     sub = data["sub"]
@@ -885,7 +961,7 @@ def api_submit_exam():
         return Response(
             500,
             "Unable to create new answer sheet"
-        ).content()
+        ).content(), 500
 
     for ans in sub:
         new_ans = create_ans({
@@ -899,7 +975,7 @@ def api_submit_exam():
             return Response(
                 500,
                 "Unable to create new answers"
-            ).content()
+            ).content(), 500
 
     new_report = create_report({
         STUDENT_ID: student_id,
@@ -913,16 +989,17 @@ def api_submit_exam():
         return Response(
             500,
             "Unable to create new report"
-        ).content()
+        ).content(), 500
 
     return Response(
         200,
         "Exam submitted successfully"
-    ).content()
+    ).content(), 200
 
 
 @app.route('/api/check_sub', methods=["POST"])
 @jwt_required
+@authenticated
 def api_check_sub():
     """ End-point for checking if an exam has been submitted by the student
             ---
@@ -994,8 +1071,6 @@ def api_check_sub():
                                             type: string
                                             example: Unauthorized request
             """
-    if not current_user.is_authenticated:
-        return ErrorResponse(401).content()
 
     data = request.get_json()
     stud_id = data.get(STUDENT_ID)
@@ -1007,7 +1082,7 @@ def api_check_sub():
         return Response(
             400,
             "Exam does not exists"
-        ).content()
+        ).content(), 400
     res = Response(200, "").content()
     if check_sub_exam(data[EXAM_ID], stud_id):
         res["message"] = "Fetched exam successfully"
@@ -1016,13 +1091,14 @@ def api_check_sub():
         res["message"] = "Exam not submitted"
         res["submitted"] = "False"
 
-    return res
+    return res, 200
 
 
 # Exam available to a user in a selected module
 @app.route('/api/get_exams')
 @app.route('/api/get_exams/<int:module_id>')
 @jwt_required
+@authenticated
 def api_get_exams(module_id=None):
     """ End-point for getting list of Exams.
        ---
@@ -1094,9 +1170,6 @@ def api_get_exams(module_id=None):
                                        type: string
                                        example: Unauthorized request
        """
-    if not current_user.is_authenticated:
-        res = ErrorResponse(401)
-        return res.content()
 
     if module_id:
         Exams = get_exams(module_id)
@@ -1106,7 +1179,7 @@ def api_get_exams(module_id=None):
     exam_list = []
 
     if not Exams:
-        return ErrorResponse(404).content()
+        return ErrorResponse(404).content(), 404
 
     for exam in Exams:
         temp = {
@@ -1123,7 +1196,7 @@ def api_get_exams(module_id=None):
 
     ret = res.content()
     ret["exams"] = exam_list
-    return ret
+    return ret, 200
 
 
 # Exam discussion
@@ -1132,9 +1205,80 @@ def api_get_exams(module_id=None):
 
 @app.route('/api/create_discussion', methods=["POST"])
 @jwt_required
+@authenticated
 def api_create_discussion():
+    """ End-point for creating a new discussion
+                ---
+                description: Create Discussion
+                post:
+                    description: Create Discussion
+                    requestBody:
+                        description : Request body
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    required:
+                                        - title
+                                        - content
+                                        - mod_id
+                                    properties:
+                                        title:
+                                            type: string
+                                            description: Title of the main discussion
+                                            example: Doubt in Algebra
+                                        content:
+                                            type: string
+                                            description: Content of the main discussion
+                                            example: How to derive (x+y)^2 ?
+                                        mod_id:
+                                            type: integer
+                                            description: ID of the module where the discussion has to be created
+                                            example: 3
+                    responses:
+                        200:
+                            description: Successfully created a new discussion
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            Status:
+                                                type: string
+                                                example: 200
+                                            message:
+                                                type: string
+                                                example: New discussion created successfully
+                        401:
+                            description: Need to be logged in to make this request
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            Status:
+                                                type: string
+                                                example: 401
+                                            message:
+                                                type: string
+                                                example: Unauthorized request.
+                        400:
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            Status:
+                                                type: string
+                                                example: 400
+                                            message:
+                                                type: string
+                                                example: Bad Request
+                """
+
     data = request.get_json()
-    data["user_id"] = current_user.User_ID
+    data[USER_ID] = current_user.User_ID
+
     new_discus = create_discussion(data)
 
     try:
@@ -1145,17 +1289,98 @@ def api_create_discussion():
 
         res = exists('Discussion', new_discus, res)
 
-        return res.content()
+        return res.content(), 200
     except:
         res = ErrorResponse(400)
-        return res.content()
+        return res.content(), 400
 
 
 @app.route('/api/create_discus_thread', methods=["POST"])
 @jwt_required
+@authenticated
 def api_create_discus_thread():
+    """ End-point for creating a new discussion reply
+                    ---
+                    description: Create Reply/Thread
+                    post:
+                        description: Create Reply/Thread
+                        requestBody:
+                            description : Request body
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        required:
+                                            - discuss_id
+                                            - content
+                                        properties:
+                                            discuss_id:
+                                                type: integer
+                                                description: ID of the discussion where you want to reply
+                                                example: 3
+                                            content:
+                                                type: string
+                                                description: Content of the reply
+                                                example: Make a square and divide it.
+                        responses:
+                            200:
+                                description: Successfully replied to the discussion
+                                content:
+                                    application/json:
+                                        schema:
+                                            type: object
+                                            properties:
+                                                Status:
+                                                    type: string
+                                                    example: 200
+                                                message:
+                                                    type: string
+                                                    example: New discussion reply created.
+                            401:
+                                description: Need to be logged in to make this request
+                                content:
+                                    application/json:
+                                        schema:
+                                            type: object
+                                            properties:
+                                                Status:
+                                                    type: string
+                                                    example: 401
+                                                message:
+                                                    type: string
+                                                    example: Unauthorized request.
+                            400:
+                                content:
+                                    application/json:
+                                        schema:
+                                            type: object
+                                            properties:
+                                                Status:
+                                                    type: string
+                                                    example: 400
+                                                message:
+                                                    type: string
+                                                    example: Bad Request
+                            404:
+                                description: The main discussion associated with the given discuss_id was not found
+                                content:
+                                    application/json:
+                                        schema:
+                                            type: object
+                                            properties:
+                                                Status:
+                                                    type: string
+                                                    example: 404
+                                                message:
+                                                    type: string
+                                                    example: Not found.
+                    """
     data = request.get_json()
     data["user_id"] = current_user.User_ID
+
+    if not disc_exists(data[DISCUSS_ID]):
+        return ErrorResponse(404).content(), 404
+
     new_dthread = create_discus_thread(data)
     try:
         res = Response(
@@ -1165,13 +1390,14 @@ def api_create_discus_thread():
 
         res = exists('Discussion', new_dthread, res)
 
-        return res.content()
+        return res.content(), res.code
     except:
-        return res.content()
+        return ErrorResponse(400).content(), 400
 
 
 @app.route('/api/view_discussion')
 @jwt_required
+@authenticated
 def api_view_discussion():
     data = request.get_json()
     discuss = get_discussion(data)
@@ -1195,15 +1421,16 @@ def api_view_discussion():
         ret["replies"] = reply_list
         ret["discuss_id"] = data["discuss_id"]
 
-        return ret
+        return ret, 200
     else:
         res = ErrorResponse(400)
-        return res.content()
+        return res.content(), 400
 
 
 # Flashcards
 @app.route('/api/view_flashcard')
 @jwt_required
+@authenticated
 def api_view_flashcards():
     data = request.get_json()
     fset = get_flashcard_set(data)
@@ -1242,13 +1469,14 @@ def api_view_flashcards():
         ret = res.content()
         ret["flashcards"] = card_list.append()
 
-        return ret
+        return ret, 200
     else:
-        return ErrorResponse(400).content()
+        return ErrorResponse(400).content(), 400
 
 
 @app.route('/api/set_pref')
 @jwt_required
+@authenticated
 def api_set_pref():
     data = request.get_json()
     fc_pref = get_fcpref({
@@ -1262,10 +1490,10 @@ def api_set_pref():
         return Response(
             200,
             "Preference set succesfully"
-        ).content()
+        ).content(), 200
 
     else:
-        return ErrorResponse(400).content()
+        return ErrorResponse(400).content(), 400
 
 
 # /users/<int:id>
@@ -1356,13 +1584,13 @@ def login():
 
     if current_user.is_authenticated:
         res = Response(
-            200,
+            400,
             "User already logged in"
         )
         username = current_user.Username
         ret = res.content()
         ret['username'] = username
-        return ret
+        return ret, 400
 
     username = data['username']
 
@@ -1371,7 +1599,7 @@ def login():
     # user = UserInfo.query.filter_by(Username=username).one()
     user = get_user(uname=username)
     if not user:
-        return ErrorResponse(404).content()
+        return ErrorResponse(404).content(), 404
 
     print(user)
 
@@ -1399,7 +1627,7 @@ def login():
         return jsonify({
             'Status': 401,
             'message': "Invalid credentials"
-        })
+        }), 401
 
 
 @app.route('/refresh', methods=['POST'])
@@ -1419,6 +1647,7 @@ def unauthorized_response(callback):
 
 
 @app.route('/logout')
+@authenticated
 # @jwt_required
 def logout():
     """ End-point for logging out.

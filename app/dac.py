@@ -139,6 +139,13 @@ def get_module(mod_id):
         return None
 
 
+def get_modules():
+    try:
+        return Module.query.all()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+
 def create_module(data):
     """
 
@@ -320,6 +327,16 @@ def create_discus_thread(data):
     )
 
     return insert(new_dthread)
+
+
+def disc_exists(discuss_id, user_id=None, mod_id=None):
+    if not user_id and not mod_id:
+        return db.session.query(Discussion.Discussion_ID).filter_by(
+            Discussion_ID=discuss_id).scalar() is not None
+    else:
+        return db.session.query(Discussion.Discussion_ID).filter_by(
+            User_ID=user_id, Module_ID=mod_id
+        ).scalar() is not None
 
 
 # Flashcards
