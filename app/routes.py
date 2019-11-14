@@ -1189,23 +1189,31 @@ def api_check_sub():
 
 # @app.route('/api/get_exams/<int:module_id>')
 # Exam available to a user in a selected module
-@app.route('/api/get_exams', methods=["Post"])
+@app.route('/api/get_exams', methods=["POST"])
 @jwt_required
-@authenticated
+@is_tutor_student
 def api_get_exams():
     """ End-point for getting list of Exams.
        ---
        description: List of Exams. [Jwt]
-       get:
+       post:
            description: List of Exams
 
-           parameters:
-            - in: path
-              name: mod_id
-              schema:
-                type: integer
-                required: False
-              description: Only required if you want to fetch the exams of a module. [OPTIONAL]
+           requestBody:
+               description: List of exams
+               content:
+                   application/json:
+                       schema:
+                           type: object
+                           properties:
+                               mod_id:
+                                  type: integer
+                                  example: 324
+                                  description: OPTIONAL
+                               stud_id:
+                                  type: integer
+                                  example: 34
+                                  description: REQUIRED if Tutor is making the request
            responses:
                200:
                    description: Successfully fetched the list of students
@@ -1243,6 +1251,13 @@ def api_get_exams():
                                                    type: string
                                                    example: 11/2/2019
                                                    description: The date on which the exam was published
+                                               mod_id:
+                                                   type: integer
+                                                   example: 23
+                                                   description: The id of the module to whom the exam belongs.
+                                               completed:
+                                                   type: boolean
+                                                   example: true
                404:
                    description: Exams not found
                    content:
@@ -1268,12 +1283,16 @@ def api_get_exams():
                                        example: 401
                                    message:
                                        type: string
-                                       example: Unauthorized request
+                                       example: Only Tutors and Students can make this request
        """
 
     data = request.get_json()
-    if USER_ID in data:
-        stud_id = data[USER_ID]
+
+    if STUDENT_ID not in data and is_User("Tutor") == 200:
+        return ErrorResponse(400).content(), 400
+
+    if STUDENT_ID in data:
+        stud_id = data[STUDENT_ID]
     else:
         stud_id = current_user.User_ID
 
@@ -1298,7 +1317,7 @@ def api_get_exams():
         day = date.day
         month = date.month
         year = date.year
-        submitted = check_sub_exam(exam.Exam_ID, stud_id)
+        completed = check_sub_exam(exam.Exam_ID, stud_id)
 
         date_str = "{}/{}/{}".format(month, day, year)
 
@@ -1307,7 +1326,7 @@ def api_get_exams():
             EXAM_NAME: exam.Exam_Name,
             QUESTION_NO: question_no,
             PUBLISHED: date_str,
-            SUBMITTED: submitted,
+            COMPLETED: completed,
 
         }
 

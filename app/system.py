@@ -126,6 +126,20 @@ def is_admin_student(function):
     return wrap
 
 # decorator
+def is_tutor_student(function):
+    @wraps(function)
+    def wrap():
+        if is_User('Student') == 200 or is_User('Tutor') == 200:
+            return function()
+        else:
+            return Response(
+                401,
+                "Only tutors and students are allowed to make this request."
+            ).content(), 401
+
+    return wrap
+
+# decorator
 def is_student(function):
     @wraps(function)
     def wrap():

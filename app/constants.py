@@ -41,7 +41,7 @@ QUESTION_NO = "ques_no"  # number of questions
 # Answer Sheet
 ANSWER = "ans"
 SUBMITTED = "submitted"
-
+COMPLETED = "completed"
 # Report
 GRADE = "grade"
 SHEET_ID = "sheet_id"
