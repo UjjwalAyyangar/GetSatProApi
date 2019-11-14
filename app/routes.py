@@ -524,7 +524,7 @@ def api_get_mods():
 
 @app.route('/api/delete', methods=['POST'])
 @jwt_required
-@is_admin  # Checks authentication automatically
+@is_admin_tutor  # Checks authentication automatically
 def api_del():
     """ End-point for deleting things.
             ---
@@ -593,6 +593,12 @@ def api_del():
     data = request.get_json()
     model_id = data[MODEL_ID]
     model_name = data[MODEL_NAME]
+
+    if model_name != "Exam" and is_User("Tutor") == 200:
+        return Response(
+            401,
+            "Only an admin can delete this").content(), 401
+
     field = get_model_field(model_name, model_id)
     if not field:
         return ErrorResponse(404).content(), 404
