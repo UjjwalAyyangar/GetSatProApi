@@ -1,6 +1,7 @@
 from app.models import *
 from flask_login import current_user, login_user, logout_user
 from functools import wraps
+from app.dac import *
 from flask import jsonify
 
 
@@ -40,6 +41,19 @@ def auto_grade(Exam, Submission):
     grade = 0.0
     return grade
 
+
+def get_progress(Module, stud_id):
+    exams = Module.Exams.all()
+    total = len(exams)
+    taken = 0
+    for exam in exams:
+        if check_sub_exam(exam.Exam_ID, stud_id):
+            taken += 1
+
+    if total!=0:
+        return (float(taken) / float(total))*100
+    else:
+        return 0.0
 
 # decorator
 def authenticated(function):
@@ -97,6 +111,19 @@ def is_admin_tutor(function):
 
     return wrap
 
+# decorator
+def is_admin_student(function):
+    @wraps(function)
+    def wrap():
+        if is_User('Student') == 200 or is_User('Admin') == 200:
+            return function()
+        else:
+            return Response(
+                401,
+                "Only admins and students are allowed to make this request."
+            ).content(), 401
+
+    return wrap
 
 # decorator
 def is_student(function):

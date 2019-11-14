@@ -341,72 +341,161 @@ def api_add_module():
         return res.content(), 400
 
 
-@app.route('/api/get_modules')
+@app.route('/api/get_modules', methods=["GET", "POST"])
 @jwt_required
-@authenticated
+@is_admin_student
 def api_get_mods():
-    """ End-point for getting list of modules.
-        ---
-        description: List of modules. [Jwt]
-        get:
-            description: List of modules
+    """ End-point for adding listing modules.
+            ---
+            description: Get modules
+            get:
+                description: Getting list of modules
+                responses:
+                    200:
+                        description: Successfully fetched modules
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: integer
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: Sucessfully fetched all the modules
+                                        mod_list:
+                                            type: array
+                                            items:
+                                                type: object
+                                                properties:
+                                                    mod_id:
+                                                        type: integer
+                                                        description : Module id
+                                                        example: 34
+                                                    mod_name:
+                                                        type: string
+                                                        description: the name of the Module
+                                                        example: Maths
+                                                    progress:
+                                                        type: flaot
+                                                        description: The progress of the student in the module
+                                                        example: 20.0
+                    400:
+                        description: Bad request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 400
+                                        message:
+                                            type: string
+                                            example: Bad request
+                    401:
+                        description: Unauthorized request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Only admins and students are allowed to make this request.
+            post:
+                description: Getting list of modules
+                requestBody:
+                    description : Request body
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    stud_id:
+                                        type: integer
+                                        description: The id of the student whose modules you want to see
+                                        example: 34
+                responses:
+                    200:
+                        description: Successfully fetched modules
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: integer
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: Sucessfully fetched all the modules
+                                        mod_list:
+                                            type: array
+                                            description: Won't see progress unless stud_id is provided
+                                            items:
+                                                type: object
+                                                properties:
+                                                    mod_id:
+                                                        type: integer
+                                                        description : Module id
+                                                        example: 34
+                                                    mod_name:
+                                                        type: string
+                                                        description: the name of the Module
+                                                        example: Maths
+                                                    progress:
+                                                        type: flaot
+                                                        description: The progress of the student in the module
+                                                        example: 20.0
+                    400:
+                        description: Bad request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 400
+                                        message:
+                                            type: string
+                                            example: Bad request
+                    401:
+                        description: Unauthorized request
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: string
+                                            example: 401
+                                        message:
+                                            type: string
+                                            example: Only admins and students are allowed to make this request.
+            """
 
-            responses:
-                200:
-                    description: Successfully fetched the list of students
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 200
-                                    message:
-                                        type: string
-                                        example: Successfully fetched the list of modules
-                                    modules:
-                                        type: array
-                                        description: A list of dictionary of modules
-                                        items:
-                                            type: object
-                                            description: Modules list
-                                            properties:
-                                                mod_id:
-                                                    type: integer
-                                                    example: 2
-                                                    description: ID of the module
-                                                mod_name:
-                                                    type: string
-                                                    example: Maths
-                                                    description: Name of the module
-                401:
-                    description: Unauthorized request
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 401
-                                    message:
-                                        type: string
-                                        example: Unauthorized request
-                404:
-                    description: Modules not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 404
-                                    message:
-                                        type: string
-                                        example: Not found
-        """
+    data = request.get_json()
+    is_POST = request.method == "POST"
+    empty = not (STUDENT_ID in data)
+
+    # Admin cannot make a GET request
+    if not is_POST and is_User("Student") != 200:
+        return ErrorResponse(400).content(), 400
+
+    # User cannot make a POST request
+    if is_POST and is_User("Student") == 200:
+        return ErrorResponse(400).content(), 400
+
+    if is_POST and not empty:
+        stud_id = data[STUDENT_ID]
+    else:
+        stud_id = current_user.User_ID
 
     modules = get_modules()
     if not modules:
@@ -416,8 +505,12 @@ def api_get_mods():
     for module in modules:
         temp = {
             MODULE_ID: module.Module_ID,
-            MODEL_NAME: module.Module_Name
+            MODULE_NAME: module.Module_Name
         }
+        if (not is_POST) or (is_POST and not empty):
+            prog = get_progress(module, stud_id)
+            temp[PROGRESS] = prog
+
         mod_list.append(temp)
 
     res = Response(
@@ -1094,12 +1187,12 @@ def api_check_sub():
     return res, 200
 
 
+# @app.route('/api/get_exams/<int:module_id>')
 # Exam available to a user in a selected module
-@app.route('/api/get_exams')
-@app.route('/api/get_exams/<int:module_id>')
+@app.route('/api/get_exams', methods=["Post"])
 @jwt_required
 @authenticated
-def api_get_exams(module_id=None):
+def api_get_exams():
     """ End-point for getting list of Exams.
        ---
        description: List of Exams. [Jwt]
@@ -1142,7 +1235,14 @@ def api_get_exams(module_id=None):
                                                    type: string
                                                    example: Sample
                                                    description: The name of the exam
-
+                                               ques_no:
+                                                   type: integer
+                                                   example: 10
+                                                   description: Number of questions in an exam
+                                               published:
+                                                   type: string
+                                                   example: 11/2/2019
+                                                   description: The date on which the exam was published
                404:
                    description: Exams not found
                    content:
@@ -1171,8 +1271,19 @@ def api_get_exams(module_id=None):
                                        example: Unauthorized request
        """
 
-    if module_id:
-        Exams = get_exams(module_id)
+    data = request.get_json()
+    if USER_ID in data:
+        stud_id = data[USER_ID]
+    else:
+        stud_id = current_user.User_ID
+
+    if MODULE_ID in data:
+        mod_id = data[MODULE_ID]
+    else:
+        mod_id = None
+
+    if mod_id:
+        Exams = get_exams(mod_id)
     else:
         Exams = get_exams()
 
@@ -1182,11 +1293,27 @@ def api_get_exams(module_id=None):
         return ErrorResponse(404).content(), 404
 
     for exam in Exams:
+        question_no = len(exam.Questions.all())
+        date = exam.Published.date()
+        day = date.day
+        month = date.month
+        year = date.year
+        submitted = check_sub_exam(exam.Exam_ID, stud_id)
+
+        date_str = "{}/{}/{}".format(month, day, year)
+
         temp = {
-            "exam_id": exam.Exam_ID,
-            "exam_name": exam.Exam_Name,
+            EXAM_ID: exam.Exam_ID,
+            EXAM_NAME: exam.Exam_Name,
+            QUESTION_NO: question_no,
+            PUBLISHED: date_str,
+            SUBMITTED: submitted,
 
         }
+
+        if not mod_id:
+            temp[MODULE_ID] = exam.Module_ID
+
         exam_list.append(temp)
 
     res = Response(
@@ -1196,6 +1323,9 @@ def api_get_exams(module_id=None):
 
     ret = res.content()
     ret["exams"] = exam_list
+    if mod_id:
+        ret[MODULE_ID] = mod_id
+
     return ret, 200
 
 
@@ -1593,7 +1723,7 @@ def login():
         return ret, 400
 
     username = data['username']
-
+    # print(data)
     del data["username"]
     password = data['password']
     # user = UserInfo.query.filter_by(Username=username).one()
@@ -1601,7 +1731,7 @@ def login():
     if not user:
         return ErrorResponse(404).content(), 404
 
-    print(user)
+    # print(user)
 
     if user and flask_bcrypt.check_password_hash(user.Login_password, password):
         access_token = create_access_token(identity=data)

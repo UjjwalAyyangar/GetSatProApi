@@ -29,6 +29,7 @@ MODULE_LIST = "mod_list"
 # Exams
 EXAM_ID = "exam_id"
 EXAM_NAME = "exam_name"
+PUBLISHED = "published"
 
 # Question
 QUESTION_ID = "ques_id"
@@ -36,8 +37,10 @@ QUESTION = "question"
 QUESTION_ANS = "ans"
 QUESTION_OPTIONS = "options"  # pass as a list
 QUESTIONS = "questions"
+QUESTION_NO = "ques_no"  # number of questions
 # Answer Sheet
 ANSWER = "ans"
+SUBMITTED = "submitted"
 
 # Report
 GRADE = "grade"
@@ -56,3 +59,4 @@ FLASHCARD_ID = "fc_id"
 FLASHCARD_DIFFICULTY = "diff"
 
 STATUS = "Status"
+PROGRESS = "progress"
