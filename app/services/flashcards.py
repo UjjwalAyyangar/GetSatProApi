@@ -1,15 +1,14 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
-from app.dac import *
-from flask_login import current_user, logout_user, login_user
+
+import app.dac.flashcards as fc_dac
+
+from flask_login import current_user
 from app import app
 from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
     jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity
+
 )
 
 mod = Blueprint('flashcards', __name__, url_prefix='/api')
@@ -21,7 +20,7 @@ mod = Blueprint('flashcards', __name__, url_prefix='/api')
 @authenticated
 def api_view_flashcards():
     data = request.get_json()
-    fset = get_flashcard_set(data)
+    fset = fc_dac.get_flashcard_set(data)
 
     if fset:
         flashcards = fset.Flashcards.all()
@@ -30,7 +29,7 @@ def api_view_flashcards():
             temp_data = {
                 "fc_id": card.FC_ID
             }
-            temp_card = get_flashcard(temp_data)
+            temp_card = fc_dac.get_flashcard(temp_data)
             if temp_card:
                 card_data = {
                     "set_id": data["set_id"],
@@ -38,7 +37,7 @@ def api_view_flashcards():
                     "answer": temp_card.Answer,
                 }
 
-                pref = get_fcpref({
+                pref = fc_dac.get_fcpref({
                     "stud_id": current_user.User_ID,
                     "fc_id": card.FC_ID
                 })
@@ -67,7 +66,7 @@ def api_view_flashcards():
 @authenticated
 def api_set_pref():
     data = request.get_json()
-    fc_pref = get_fcpref({
+    fc_pref = fc_dac.get_fcpref({
         "stud_id": current_user.User_ID,
         "FC_ID": data["fc_id"]
     })

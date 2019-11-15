@@ -1,7 +1,16 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
-from app.dac import *
+# from app.dac import *
+
+from app.dac.discussions import *
+from app.dac.exams import *
+from app.dac.general import *
+from app.dac.flashcards import *
+from app.dac.grades import *
+from app.dac.modules import *
+from app.dac.users import *
+
 from flask_login import current_user, logout_user, login_user
 from app import app
 from flask_jwt_extended import (

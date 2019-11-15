@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
-from app.dac import *
+from app.constants import *
+import app.dac.users as users_dac
+import app.dac.general as gen_dac
+
 from flask_login import current_user, logout_user, login_user
 from app import db, flask_bcrypt, jwt, login
 from app import app
@@ -129,13 +132,13 @@ def register():
         res = ErrorResponse(405)
         return res.content()
 
-    user = create_user(data)
+    user = users_dac.create_user(data)
     print(user)
     res = Response(
         200,
         "User created successfully"
     )
-    res = exists('User', user, res)
+    res = gen_dac.exists('User', user, res)
 
     return res.content(), 200
 
@@ -239,7 +242,7 @@ def login():
     del data["username"]
     password = data['password']
     # user = UserInfo.query.filter_by(Username=username).one()
-    user = get_user(uname=username)
+    user = users_dac.get_user(uname=username)
     if not user:
         return ErrorResponse(404).content(), 404
 
@@ -272,7 +275,7 @@ def login():
         }), 401
 
 
-@app.route('/logout')
+@mod.route('/logout')
 @authenticated
 # @jwt_required
 def logout():
@@ -423,7 +426,7 @@ def api_get_students():
                                     type: string
                                     example: Not found
     """
-    students = get_users(1)
+    students = users_dac.get_users(1)
     if students:
         res = Response(
             200,

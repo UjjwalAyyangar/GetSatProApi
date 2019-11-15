@@ -1,15 +1,14 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
-from app.dac import *
+
+import app.dac.modules as mod_dac
+import app.dac.general as gen_dac
+from app.constants import *
 from flask_login import current_user, logout_user, login_user
 from app import app
 from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity
+    jwt_required
 )
 
 mod = Blueprint('modules', __name__, url_prefix='/api')
@@ -71,13 +70,13 @@ def api_add_module():
         abort(404)
 
     try:
-        module = create_module(data)
+        module = mod_dac.create_module(data)
         res = Response(
             200,
             "Module added successfully"
         )
 
-        res = exists('Module', module, res)
+        res = gen_dac.exists('Module', module, res)
 
         return res.content(), res.code
 
@@ -243,7 +242,7 @@ def api_get_mods():
     else:
         stud_id = current_user.User_ID
 
-    modules = get_modules()
+    modules = mod_dac.get_modules()
     if not modules:
         return Response(404, "No modules found").content(404)
 
@@ -254,7 +253,7 @@ def api_get_mods():
             MODULE_NAME: module.Module_Name
         }
         if (not is_POST) or (is_POST and not empty):
-            prog = get_progress(module, stud_id)
+            prog = gen_dac.get_progress(module, stud_id)
             temp[PROGRESS] = prog
 
         mod_list.append(temp)
