@@ -1,15 +1,15 @@
-from flask import Blueprint, jsonify
-from flask import abort, request
+from flask import Blueprint
+from flask import request
 from app.system import *
-from app.dac import *
-from flask_login import current_user, logout_user, login_user
-from app import app
+
+from app.dac import discussions as disc_dac
+from app.dac import general as gen_dac
+
+from app.constants import *
+
+from flask_login import current_user
 from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity
+    jwt_required
 )
 
 mod = Blueprint('discussions', __name__, url_prefix='/api')
@@ -91,7 +91,7 @@ def api_create_discussion():
     data = request.get_json()
     data[USER_ID] = current_user.User_ID
 
-    new_discus = create_discussion(data)
+    new_discus = disc_dac.create_discussion(data)
 
     try:
         res = Response(
@@ -99,7 +99,7 @@ def api_create_discussion():
             "Discussion created successfully"
         )
 
-        res = exists('Discussion', new_discus, res)
+        res = gen_dac.exists('Discussion', new_discus, res)
 
         return res.content(), 200
     except:
@@ -190,17 +190,17 @@ def api_create_discus_thread():
     data = request.get_json()
     data["user_id"] = current_user.User_ID
 
-    if not disc_exists(data[DISCUSS_ID]):
+    if not disc_dac.disc_exists(data[DISCUSS_ID]):
         return ErrorResponse(404).content(), 404
 
-    new_dthread = create_discus_thread(data)
+    new_dthread = disc_dac.create_discus_thread(data)
     try:
         res = Response(
             200,
             "Discussion thread created successfully"
         )
 
-        res = exists('Discussion', new_dthread, res)
+        res = gen_dac.exists('Discussion', new_dthread, res)
 
         return res.content(), res.code
     except:
@@ -212,7 +212,7 @@ def api_create_discus_thread():
 @authenticated
 def api_view_discussion():
     data = request.get_json()
-    discuss = get_discussion(data)
+    discuss = disc_dac.get_discussion(data)
 
     if discuss:
         reply_list = []

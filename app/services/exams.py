@@ -1,15 +1,15 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
-from app.dac import *
+from app.constants import *
+from app.dac import exams as exams_dac
+from app.dac import grades as grades_dac
+from app.dac import general as gen_dac
+
 from flask_login import current_user, logout_user, login_user
 from app import app
 from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity
+    jwt_required
 )
 
 mod = Blueprint('exams', __name__, url_prefix='/api')
@@ -128,9 +128,9 @@ def api_get_exams():
         mod_id = None
 
     if mod_id:
-        Exams = get_exams(mod_id)
+        Exams = exams_dac.get_exams(mod_id)
     else:
-        Exams = get_exams()
+        Exams = exams_dac.get_exams()
 
     exam_list = []
 
@@ -143,7 +143,7 @@ def api_get_exams():
         day = date.day
         month = date.month
         year = date.year
-        completed = check_sub_exam(exam.Exam_ID, stud_id)
+        completed = exams_dac.check_sub_exam(exam.Exam_ID, stud_id)
 
         date_str = "{}/{}/{}".format(month, day, year)
 
@@ -259,7 +259,7 @@ def api_submit_exam():
 
     # check if the exam already exists or not
     exam_id = data["exam_id"]
-    exam = get_exam(exam_id)
+    exam = exams_dac.get_exam(exam_id)
     if not exam:
         return Response(
             404,
@@ -267,7 +267,7 @@ def api_submit_exam():
         ).content(), 404
 
     # check if the user has already submitted this exam or not
-    if check_sub_exam(exam_id):
+    if exams_dac.check_sub_exam(exam_id):
         return Response(
             200,
             "Exam already submitted"
@@ -280,7 +280,7 @@ def api_submit_exam():
     grade = auto_grade(exam, sub)
 
     # create a new sheet
-    new_ans_sheet = create_ans_sheet({
+    new_ans_sheet = exams_dac.create_ans_sheet({
         STUDENT_ID: student_id,
         EXAM_ID: exam_id
     })
@@ -293,7 +293,7 @@ def api_submit_exam():
         ).content(), 500
 
     for ans in sub:
-        new_ans = create_ans({
+        new_ans = exams_dac.create_ans({
             STUDENT_ID: student_id,
             QUESTION_ID: ans[QUESTION_ID],
             ANSWER: ans[ANSWER]
@@ -306,7 +306,7 @@ def api_submit_exam():
                 "Unable to create new answers"
             ).content(), 500
 
-    new_report = create_report({
+    new_report = grades_dac.create_report({
         STUDENT_ID: student_id,
         EXAM_ID: exam_id,
         SHEET_ID: new_ans_sheet.Sheet_ID,
@@ -405,7 +405,7 @@ def api_create_exam():
         """
     data = request.get_json()
 
-    exam = create_exam(data)
+    exam = exams_dac.create_exam(data)
     if not exam:
         return ErrorResponse(500).content(), 500
 
@@ -413,7 +413,7 @@ def api_create_exam():
         200,
         "Exam was created successfully"
     )
-    res = exists('Exam', exam, res)
+    res = gen_dac.exists('Exam', exam, res)
 
     return res.content(), res.code
 
@@ -498,14 +498,14 @@ def api_check_sub():
     if not stud_id:
         stud_id = current_user.User_ID
 
-    exam = get_exam(data[EXAM_ID])
+    exam = exams_dac.get_exam(data[EXAM_ID])
     if not exam:
         return Response(
             400,
             "Exam does not exists"
         ).content(), 400
     res = Response(200, "").content()
-    if check_sub_exam(data[EXAM_ID], stud_id):
+    if exams_dac.check_sub_exam(data[EXAM_ID], stud_id):
         res["message"] = "Fetched exam successfully"
         res["submitted"] = "True"
     else:

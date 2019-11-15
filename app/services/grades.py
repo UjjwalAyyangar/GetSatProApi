@@ -1,15 +1,16 @@
 from flask import Blueprint, jsonify
-from flask import abort, request
+from flask import request
 from app.system import *
-from app.dac import *
+from app.constants import *
+
+from app.dac import exams as exam_dac
+
+from app.dac import grades as grade_dac
+
 from flask_login import current_user, logout_user, login_user
 from app import app
 from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity
+    jwt_required
 )
 
 mod = Blueprint('grades', __name__, url_prefix='/api')
@@ -102,15 +103,15 @@ def api_view_grade():
             return res.content(), 400
 
     # check if that exam exists
-    exam = get_exam(exam_id)
+    exam = exam_dac.get_exam(exam_id)
     if not exam:
         return ErrorResponse(400).content(), 400
 
     # check if the student has submitted that exam
-    if not check_sub_exam(exam_id, stud_id):
+    if not exam_dac.check_sub_exam(exam_id, stud_id):
         return ErrorResponse(400).content(), 400
 
-    report = get_report(stud_id, exam_id)
+    report = exam_dac.get_report(stud_id, exam_id)
 
     # report cannot be null at this point
     res = Response(
@@ -221,17 +222,17 @@ def api_view_grades():
             return res.content(), 400
 
     if module_id:
-        exams = get_exams(module_id)
+        exams = exam_dac.get_exams(module_id)
     else:
-        exams = get_exams()
+        exams = exam_dac.get_exams()
 
     exam_list = []
     for exam in exams:
         exam_id = exam.Exam_ID
-        if not check_sub_exam(exam_id, stud_id):
+        if not exam_dac.check_sub_exam(exam_id, stud_id):
             continue
 
-        report = get_report(stud_id, exam_id)
+        report = grade_dac.get_report(stud_id, exam_id)
         t_report = {
             EXAM_ID: exam_id,
             EXAM_NAME: exam.Exam_Name,

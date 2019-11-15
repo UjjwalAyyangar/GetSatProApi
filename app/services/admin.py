@@ -1,19 +1,14 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
-from app.dac import *
-from flask_login import current_user, logout_user, login_user
-from app import db, flask_bcrypt, jwt, login
-from app import app
+from app.dac import general as gen
+from app.constants import *
+
 from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    jwt_required,
-    jwt_refresh_token_required,
-    get_jwt_identity
+    jwt_required
 )
 
-mod = Blueprint('admin',__name__, url_prefix='/api')
+mod = Blueprint('admin', __name__, url_prefix='/api')
 
 
 @mod.route('/delete', methods=['POST'])
@@ -93,11 +88,11 @@ def api_del():
             401,
             "Only an admin can delete this").content(), 401
 
-    field = get_model_field(model_name, model_id)
+    field = gen.get_model_field(model_name, model_id)
     if not field:
         return ErrorResponse(404).content(), 404
 
-    deleted = delete(field)
+    deleted = gen.delete(field)
     if not deleted:
         return ErrorResponse(500).content(), 500
 
