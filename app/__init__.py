@@ -9,18 +9,8 @@ from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from flasgger import Swagger
-
-# from app.models import *
-
-# engine = create_engine('sqlite:///getSatPro.db')
-# DBSession = sessionmaker(bind=engine)
-# session = DBSession()
-# Base = declarative_base()
-
 
 app = Flask(__name__)
-
 
 app.config.from_object(Config)
 
@@ -34,8 +24,28 @@ jwt = JWTManager(app)
 login = LoginManager(app)
 # Swagger(app)
 
-from app import routes
+
+from .services import (
+    users,
+    discussions,
+    exams,
+    grades,
+    modules,
+    flashcards,
+    admin,
+    docs
+)
+
+app.register_blueprint(users.mod)
+app.register_blueprint(discussions.mod)
+app.register_blueprint(exams.mod)
+app.register_blueprint(grades.mod)
+app.register_blueprint(modules.mod)
+app.register_blueprint(flashcards.mod)
+app.register_blueprint(admin.mod)
+app.register_blueprint(docs.mod)
+
+# from app import routes
 from app.scripts import openapi
 
 openapi.make_doc()
-

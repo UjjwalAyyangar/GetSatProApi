@@ -23,6 +23,20 @@ def get_model_obj(model_name):
     return model[model_name]
 
 
+def get_progress(Module, stud_id):
+    exams = Module.Exams.all()
+    total = len(exams)
+    taken = 0
+    for exam in exams:
+        if check_sub_exam(exam.Exam_ID, stud_id):
+            taken += 1
+
+    if total != 0:
+        return (float(taken) / float(total)) * 100
+    else:
+        return 0.0
+
+
 def get_model_field(model_name, data):
     if model_name == 'Module':
         return get_module(data)
