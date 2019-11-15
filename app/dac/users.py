@@ -7,7 +7,8 @@ from app import db, flask_bcrypt
 import sqlalchemy
 from flask_login import current_user
 from app.constants import *
-from .general import *
+
+from app.dac import general as gen_dac
 
 
 def get_user(uname=None, user_id=None):
@@ -48,4 +49,4 @@ def create_user(data):
     )
 
     print(new_user)
-    return insert(new_user)
+    return gen_dac.insert(new_user)

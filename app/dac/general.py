@@ -8,12 +8,13 @@ import sqlalchemy
 from flask_login import current_user
 from app.constants import *
 # from .general import *
-import app.dac.modules as mod_dac
-import app.dac.users as users_dac
-import app.dac.exams as exams_dac
-import app.dac.flashcards as fc_dac
-import app.dac.discussions as disc_dac
-import app.dac.grades as grade_dac
+
+from app.dac import modules as mod_dac
+from app.dac import users as users_dac
+from app.dac import exams as exams_dac
+from app.dac import flashcards as fc_dac
+from app.dac import discussions as disc_dac
+from app.dac import grades as grade_dac
 
 
 def exists(name, obj, res):

@@ -7,7 +7,9 @@ from app import db, flask_bcrypt
 import sqlalchemy
 from flask_login import current_user
 from app.constants import *
-from .general import *
+
+from app.dac import general as gen_dac
+
 
 def get_report(student_id, exam_id):
     try:
@@ -27,4 +29,4 @@ def create_report(data):
         Grade=data[GRADE]
     )
 
-    return insert(new_report)
+    return gen_dac.insert(new_report)

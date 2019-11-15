@@ -7,7 +7,8 @@ from app import db, flask_bcrypt
 import sqlalchemy
 from flask_login import current_user
 from app.constants import *
-import app.dac.general as gen_dac
+
+from app.dac import general as gen_dac
 
 
 def get_exam(id):

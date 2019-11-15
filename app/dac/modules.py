@@ -7,7 +7,9 @@ from app import db, flask_bcrypt
 import sqlalchemy
 from flask_login import current_user
 from app.constants import *
-from .general import *
+
+from app.dac import general as gen_dac
+from app.dac import exams as exam_dac
 
 
 def get_module(mod_id):
@@ -39,14 +41,15 @@ def create_module(data):
         Module_Name=data[MODULE_NAME]
     )
 
-    return insert(new_module)
+    return gen_dac.insert(new_module)
+
 
 def get_progress(Module, stud_id):
     exams = Module.Exams.all()
     total = len(exams)
     taken = 0
     for exam in exams:
-        if check_sub_exam(exam.Exam_ID, stud_id):
+        if exam_dac.check_sub_exam(exam.Exam_ID, stud_id):
             taken += 1
 
     if total != 0:

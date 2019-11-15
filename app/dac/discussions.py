@@ -7,8 +7,8 @@ from app import db
 import sqlalchemy
 from flask_login import current_user
 from app.constants import *
-import app.dac.general as gen
 
+from app.dac import general as gen
 
 def get_discussion(data):
     try:
