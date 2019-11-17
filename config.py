@@ -11,6 +11,7 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'getSatPro.db')
     # 'postgresql://localhost/getSatPro.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CORS_HEADERS = 'Content-Type'
 
 
 

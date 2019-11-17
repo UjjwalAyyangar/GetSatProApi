@@ -12,11 +12,13 @@ from app import app
 from flask_jwt_extended import (
     jwt_required
 )
+from flask_cors import cross_origin
 
 mod = Blueprint('grades', __name__, url_prefix='/api')
 
 
 @mod.route('/view_grade', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_grade():
@@ -125,6 +127,7 @@ def api_view_grade():
 
 
 @mod.route('/view_grades', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_grades():

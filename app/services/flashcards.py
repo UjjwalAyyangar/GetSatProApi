@@ -10,12 +10,14 @@ from flask_jwt_extended import (
     jwt_required,
 
 )
+from flask_cors import cross_origin
 
 mod = Blueprint('flashcards', __name__, url_prefix='/api')
 
 
 # Flashcards
 @mod.route('/view_flashcard')
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_flashcards():
@@ -62,6 +64,7 @@ def api_view_flashcards():
 
 
 @mod.route('/set_pref')
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_set_pref():

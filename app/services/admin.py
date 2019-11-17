@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from flask import abort, request
+from flask_cors import cross_origin
 from app.system import *
 from app.dac import general as gen
 from app.constants import *
@@ -12,6 +13,7 @@ mod = Blueprint('admin', __name__, url_prefix='/api')
 
 
 @mod.route('/delete', methods=['POST'])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @is_admin_tutor  # Checks authentication automatically
 def api_del():

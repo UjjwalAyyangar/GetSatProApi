@@ -11,11 +11,13 @@ from flask_login import current_user
 from flask_jwt_extended import (
     jwt_required
 )
+from flask_cors import cross_origin
 
 mod = Blueprint('discussions', __name__, url_prefix='/api')
 
 
 @mod.route('/create_discussion', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_create_discussion():
@@ -108,6 +110,7 @@ def api_create_discussion():
 
 
 @mod.route('/create_discus_thread', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_create_discus_thread():
@@ -208,6 +211,7 @@ def api_create_discus_thread():
 
 
 @mod.route('/view_discussion')
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_discussion():

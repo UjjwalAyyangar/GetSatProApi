@@ -6,6 +6,7 @@ from app.dac import exams as exams_dac
 from app.dac import grades as grades_dac
 from app.dac import general as gen_dac
 from app.dac import modules as mod_dac
+from flask_cors import cross_origin
 
 from flask_login import current_user, logout_user, login_user
 from app import app
@@ -17,6 +18,7 @@ mod = Blueprint('exams', __name__, url_prefix='/api')
 
 
 @mod.route('/get_exams', methods=["GET", "POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @is_tutor_student
 def api_get_exams():
@@ -214,6 +216,7 @@ def api_get_exams():
 
 
 @mod.route('/submit_exam', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @is_student  # this ensures authentication check
 def api_submit_exam():
@@ -366,6 +369,7 @@ def api_submit_exam():
 
 
 @mod.route('/create_exam', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @is_admin_tutor  # checks for authentication also
 def api_create_exam():
@@ -469,6 +473,7 @@ def api_create_exam():
 
 
 @mod.route('/check_sub', methods=["POST"])
+@cross_origin(supports_credentials=True)
 @jwt_required
 @authenticated
 def api_check_sub():

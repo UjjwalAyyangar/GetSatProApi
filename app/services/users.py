@@ -6,7 +6,7 @@ from app.constants import *
 from app.dac import users as users_dac
 
 from app.dac import general as gen_dac
-
+from flask_cors import cross_origin
 from flask_login import current_user, logout_user, login_user
 from app import db, flask_bcrypt, jwt, login
 from app import app
@@ -28,6 +28,7 @@ def load_user(id):
 
 
 @mod.route('/register')
+@cross_origin(supports_credentials=True)
 def register():
     """ End-point for user registration.
     ---
@@ -146,6 +147,7 @@ def register():
 
 
 @mod.route('/login', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def login():
     """ End-point for logging in exams.
             ---
@@ -278,6 +280,7 @@ def login():
 
 
 @mod.route('/logout')
+@cross_origin(supports_credentials=True)
 @authenticated
 # @jwt_required
 def logout():
@@ -339,6 +342,7 @@ def logout():
 
 
 @mod.route('/refresh', methods=['POST'])
+@cross_origin(supports_credentials=True)
 @jwt_refresh_token_required
 def refresh():
     current_user = get_jwt_identity()
@@ -355,6 +359,7 @@ def unauthorized_response(callback):
 
 
 @mod.route('/get_students')
+@cross_origin(supports_credentials=True)
 @jwt_required
 @is_admin_tutor
 def api_get_students():
