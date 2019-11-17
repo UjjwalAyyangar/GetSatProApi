@@ -387,7 +387,7 @@ def api_create_exam():
                             properties:
                                 mod_id:
                                     type: integer
-                                    description: Module ID
+                                    description: Module ID (IF ADMIN)
                                     example: 1
                                 exam_name:
                                     type: string
@@ -442,7 +442,18 @@ def api_create_exam():
                                         type: string
                                         example: Only Admins or Tutors can make this request.
         """
+    # mod_id for admin
+
     data = request.get_json()
+
+    user_id = current_user.User_ID
+    if is_User("Tutor") == 200:
+        mod_id = mod_dac.get_tutor_module(user_id)
+        if not mod_id:
+            return ErrorResponse(404).content(), 404
+
+        mod_id = mod_id.Module_ID
+        data[MODULE_ID] = mod_id
 
     exam = exams_dac.create_exam(data)
     if not exam:
