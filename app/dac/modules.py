@@ -56,3 +56,10 @@ def get_progress(Module, stud_id):
         return (float(taken) / float(total)) * 100
     else:
         return 0.0
+
+
+def get_tutor_module(tutor_id):
+    try:
+        return TutorModule.query.filter_by(Tutor_ID=tutor_id).one()
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None

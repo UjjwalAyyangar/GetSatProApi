@@ -5,6 +5,7 @@ from app.constants import *
 from app.dac import exams as exams_dac
 from app.dac import grades as grades_dac
 from app.dac import general as gen_dac
+from app.dac import modules as mod_dac
 
 from flask_login import current_user, logout_user, login_user
 from app import app
@@ -15,16 +16,56 @@ from flask_jwt_extended import (
 mod = Blueprint('exams', __name__, url_prefix='/api')
 
 
-@mod.route('/get_exams', methods=["POST"])
+@mod.route('/get_exams', methods=["GET", "POST"])
 @jwt_required
 @is_tutor_student
 def api_get_exams():
     """ End-point for getting list of Exams.
        ---
        description: List of Exams. [Jwt]
+       get:
+                description: Getting list of modules
+                responses:
+                    200:
+                        description: Successfully fetched exams
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        Status:
+                                            type: integer
+                                            example: 200
+                                        message:
+                                            type: string
+                                            example: Sucessfully fetched all the exams
+                                        mod_list:
+                                            type: array
+                                            items:
+                                                type: object
+                                                properties:
+                                                    exam_id:
+                                                        type: integer
+                                                        example: 1
+                                                        description: Id of the exam of the student
+                                                    exam_name:
+                                                        type: string
+                                                        example: Sample
+                                                        description: The name of the exam
+                                                    ques_no:
+                                                        type: integer
+                                                        example: 10
+                                                        description: Number of questions in an exam
+                                                    published:
+                                                        type: string
+                                                        example: 11/2/2019
+                                                        description: The date on which the exam was published
+                                                    mod_id:
+                                                        type: integer
+                                                        example: 23
+                                                        description: The id of the module to whom the exam belongs.
        post:
            description: List of Exams
-
            requestBody:
                description: List of exams
                content:
@@ -36,10 +77,6 @@ def api_get_exams():
                                   type: integer
                                   example: 324
                                   description: OPTIONAL
-                               stud_id:
-                                  type: integer
-                                  example: 34
-                                  description: REQUIRED if Tutor is making the request
            responses:
                200:
                    description: Successfully fetched the list of students
@@ -84,6 +121,7 @@ def api_get_exams():
                                                completed:
                                                    type: boolean
                                                    example: true
+                                                   description: Only present for students
                404:
                    description: Exams not found
                    content:
@@ -112,20 +150,21 @@ def api_get_exams():
                                        example: Only Tutors and Students can make this request
        """
 
+    # POST - module_id - for students
+    # GET - for tutor and students
+
     data = request.get_json()
+    stud_id, tut_id, mod_id = (None, None, None)
+    if is_User('Tutor') == 200:
+        if request.method == "POST":
+            return ErrorResponse(400).content(), 400
 
-    if STUDENT_ID not in data and is_User("Tutor") == 200:
-        return ErrorResponse(400).content(), 400
-
-    if STUDENT_ID in data:
-        stud_id = data[STUDENT_ID]
+        tut_id = current_user.User_ID
+        mod_id = mod_dac.get_tutor_module(tut_id).Module_ID
     else:
         stud_id = current_user.User_ID
-
-    if MODULE_ID in data:
-        mod_id = data[MODULE_ID]
-    else:
-        mod_id = None
+        if MODULE_ID in data:
+            mod_id = data[MODULE_ID]
 
     if mod_id:
         Exams = exams_dac.get_exams(mod_id)
@@ -143,8 +182,6 @@ def api_get_exams():
         day = date.day
         month = date.month
         year = date.year
-        completed = exams_dac.check_sub_exam(exam.Exam_ID, stud_id)
-
         date_str = "{}/{}/{}".format(month, day, year)
 
         temp = {
@@ -152,9 +189,11 @@ def api_get_exams():
             EXAM_NAME: exam.Exam_Name,
             QUESTION_NO: question_no,
             PUBLISHED: date_str,
-            COMPLETED: completed,
-
         }
+
+        if stud_id:
+            completed = exams_dac.check_sub_exam(exam.Exam_ID, stud_id)
+            temp[COMPLETED] = completed
 
         if not mod_id:
             temp[MODULE_ID] = exam.Module_ID

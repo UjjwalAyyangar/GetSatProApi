@@ -43,6 +43,7 @@ class UserRole(db.Model):
     User_Type = Column(String(50), unique=True)
     UserInfo = rel_obj.one_to_many('UserRole', 'UserInfo')  # A user role can point to many users
 
+
 class UserInfo(UserMixin, db.Model):
     User_ID = Column(Integer, primary_key=True)
     First_Name = Column(String(250), nullable=False)
@@ -57,7 +58,7 @@ class UserInfo(UserMixin, db.Model):
     Pref_table = rel_obj.one_to_one('UserInfo', 'FC_Preference')  # 1 student has 1 pref table
     Discussions = rel_obj.one_to_many('UserInfo', 'Discussion')  # 1 user can have many discussions
     Replies = rel_obj.one_to_many('UserInfo', 'DiscussionThread')  # 1 user can have many replies
-    Submitted_Exams = rel_obj.one_to_many('UserInfo','StudentAnswerSheet')
+    Submitted_Exams = rel_obj.one_to_many('UserInfo', 'StudentAnswerSheet')
 
     Last_Login = Column(db.DateTime, default=datetime.now())
     Login_password = Column(String(128), nullable=False)
@@ -94,6 +95,10 @@ class Module(db.Model):
     Flashcards = rel_obj.one_to_many('Module', 'FlashcardSet')  # 1 module will have many flashcards
 
 
+class TutorModule(db.Model):
+    Tutor_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
+    Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
+
 # Exam
 
 class ExamQuestion(db.Model):
@@ -119,6 +124,7 @@ class Exam(db.Model):
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
 
     Reports = rel_obj.one_to_many('Exam', 'StudentReport')  # 1 exam will have many reports
+
 
 """
 {

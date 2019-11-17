@@ -9,7 +9,7 @@ from flask_login import current_user
 from app.constants import *
 # from .general import *
 
-from app.dac import modules as mod_dac
+from app.dac import modules as mod_da
 from app.dac import users as users_dac
 from app.dac import exams as exams_dac
 from app.dac import flashcards as fc_dac
