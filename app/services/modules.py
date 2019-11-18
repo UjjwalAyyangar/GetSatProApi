@@ -249,7 +249,7 @@ def api_get_mods():
 
     modules = mod_dac.get_modules()
     if not modules:
-        return Response(404, "No modules found").content(404)
+        return Response(404, "No modules found").content(404),404
 
     mod_list = []
     for module in modules:

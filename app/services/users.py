@@ -452,6 +452,7 @@ def api_get_students():
             stud_list.append(temp)
 
         ret[STUDENTS] = stud_list
-        return ret, 200
+        response = jsonify(ret)
+        return response, 200
     else:
         return ErrorResponse(404).content(), 404
