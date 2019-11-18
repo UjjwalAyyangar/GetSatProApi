@@ -11,7 +11,7 @@ ADMIN_ID = 'user_id'
 
 # User Role
 ROLE_ID = "role_id"
-ROLE_TYPE = "role_type"
+ROLE_TYPE = "user_type"
 
 # User Info
 STUDENTS = "students"

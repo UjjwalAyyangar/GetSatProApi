@@ -259,12 +259,12 @@ def login():
         data['token'] = access_token
         data['refresh'] = refresh_token
         data['user_info'] = {
-            "user_type": user.UserRole.User_Type,
-            'first_name': user.First_Name,
-            'last_name': user.Last_Name,
-            'user_id': user.User_ID,
+            ROLE_TYPE: user.UserRole.User_Type,
+            USER_FNAME: user.First_Name,
+            USER_LNAME: user.Last_Name,
+            USER_ID: user.User_ID,
             'last_logged_in': user.Last_Login,
-            "username": username
+            USERNAME: username
         }
 
         data["Status"] = 200
@@ -453,7 +453,7 @@ def api_get_students():
 
         ret[STUDENTS] = stud_list
         response = jsonify(ret)
-        #response.headers.add('Access-Control-Allow-Origin', '*')
+        # response.headers.add('Access-Control-Allow-Origin', '*')
 
         return response, 200
     else:
