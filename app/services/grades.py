@@ -113,7 +113,7 @@ def api_view_grade():
     if not exam_dac.check_sub_exam(exam_id, stud_id):
         return ErrorResponse(400).content(), 400
 
-    report = exam_dac.get_report(stud_id, exam_id)
+    report = grade_dac.get_report(stud_id, exam_id)
 
     # report cannot be null at this point
     res = Response(

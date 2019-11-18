@@ -5,9 +5,9 @@ MODEL_ID = "model_id"
 MODEL_NAME = "model_name"
 # User IDs
 USER_ID = 'user_id'
-STUDENT_ID = 'stud_id'
-TUTOR_ID = 'tutor_id'
-ADMIN_ID = 'admin_id'
+STUDENT_ID = 'user_id'
+TUTOR_ID = 'user_id'
+ADMIN_ID = 'user_id'
 
 # User Role
 ROLE_ID = "role_id"
