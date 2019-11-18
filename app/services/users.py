@@ -359,7 +359,7 @@ def unauthorized_response(callback):
 
 
 @mod.route('/get_students')
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_tutor
 def api_get_students():
@@ -453,7 +453,7 @@ def api_get_students():
 
         ret[STUDENTS] = stud_list
         response = jsonify(ret)
-        response.headers.add('Access-Control-Allow-Origin', '*')
+        #response.headers.add('Access-Control-Allow-Origin', '*')
 
         return response, 200
     else:
