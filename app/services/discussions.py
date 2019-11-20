@@ -114,7 +114,7 @@ def api_create_discussion():
         return res.content(), 400
 
 
-@mod.route('/create_discus_thread', methods=["POST"])
+@mod.route('/create_discuss_thread', methods=["POST"])
 @cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
