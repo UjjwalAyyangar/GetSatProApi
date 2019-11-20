@@ -94,7 +94,8 @@ def api_set_pref():
         next_card_data = {
             FLASHCARD_SET_ID: next_card.Set_ID,
             FLASHCARD_QUESTION: next_card.Question,
-            FLASHCARD_ANSWER: next_card.Answer
+            FLASHCARD_ANSWER: next_card.Answer,
+            FLASHCARD_ID: next_card.FC_ID
         }
 
         ret = Response(
