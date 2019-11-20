@@ -92,12 +92,14 @@ class Module(db.Model):
     Module_Name = Column(String(100), nullable=False, unique=True)
 
     Exams = rel_obj.one_to_many('Module', 'Exam')  # 1 module will have many exams
-    Flashcards = rel_obj.one_to_many('Module', 'FlashcardSet')  # 1 module will have many flashcards
+    Sets = rel_obj.one_to_many('Module', 'FlashcardSet')  # 1 module will have many flashcards
+    Discussions = rel_obj.one_to_many('Module', 'Discussion')
 
 
 class TutorModule(db.Model):
     Tutor_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
+
 
 # Exam
 
@@ -115,7 +117,7 @@ class ExamQuestion(db.Model):
 
 class Exam(db.Model):
     Exam_ID = Column(Integer, primary_key=True)
-    Exam_Name = Column(String(100), nullable=False)
+    Exam_Name = Column(String(100), nullable=False, unique=True)
 
     Questions = rel_obj.one_to_many('Exam', 'ExamQuestion')  # 1 exam has many questions
     Published = Column(db.DateTime, default=datetime.now())
@@ -173,28 +175,29 @@ class UserAnswer(db.Model):
     Sheet_ID = Column(Integer, db.ForeignKey('student_answer_sheet.Sheet_ID'))
     Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
     Question_ID = Column(Integer, db.ForeignKey('exam_question.Question_ID'), primary_key=True)
-    Ans = Column(Integer, nullable=False)
+    Ans = Column(String(100), nullable=False)
 
 
 # Flashcards
 class FlashcardSet(db.Model):
     Set_ID = Column(Integer, primary_key=True)
-    Set_Name = Column(String(100), nullable=False)
+    Set_Name = Column(String(100), nullable=False, unique=True)
     Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
     Flashcards = rel_obj.one_to_many('FlashcardSet', 'Flashcard')  # 1 set has many cards
 
 
 class Flashcard(db.Model):
     FC_ID = Column(Integer, primary_key=True)
-    Set_Id = Column(Integer, db.ForeignKey('flashcard_set.Set_ID'))
+    Set_ID = Column(Integer, db.ForeignKey('flashcard_set.Set_ID'))
     Question = Column(String(100), nullable=False)
-    Answer = Column(Integer, nullable=False)
+    Answer = Column(String(300), nullable=False)
 
 
 class FC_Preference(db.Model):
     Student_ID = Column(Integer, db.ForeignKey('user_info.User_ID'), primary_key=True)
     FC_ID = Column(Integer, db.ForeignKey('flashcard.FC_ID'), primary_key=True)
     Difficulty = Column(Integer, default=2)
+    Count = Column(Integer, default=3)
 
 
 # Discussion

@@ -7,8 +7,10 @@ from app import db
 import sqlalchemy
 from flask_login import current_user
 from app.constants import *
+from app.dac import modules as mod_dac
 
 from app.dac import general as gen
+
 
 def get_discussion(data):
     try:
@@ -16,6 +18,16 @@ def get_discussion(data):
             Discussion_ID=data[DISCUSS_ID]
         ).one()
     except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+
+def get_discussions(data):
+    try:
+        module = mod_dac.get_module(data[MODULE_ID])
+        #print("Module is",module)
+        #print(module.Discussions.all())
+        return module.Discussions.all()
+    except:
         return None
 
 

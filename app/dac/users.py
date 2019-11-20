@@ -48,5 +48,5 @@ def create_user(data):
         Role_ID=int(data[ROLE_ID])
     )
 
-    print(new_user)
+    #print(new_user)
     return gen_dac.insert(new_user)

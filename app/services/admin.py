@@ -13,7 +13,7 @@ mod = Blueprint('admin', __name__, url_prefix='/api')
 
 
 @mod.route('/delete', methods=['POST'])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_tutor  # Checks authentication automatically
 def api_del():

@@ -40,6 +40,7 @@ QUESTIONS = "questions"
 QUESTION_NO = "ques_no"  # number of questions
 # Answer Sheet
 ANSWER = "ans"
+ANSWERS = "answers"
 SUBMITTED = "submitted"
 COMPLETED = "completed"
 # Report
@@ -51,12 +52,24 @@ DISCUSS_ID = "discuss_id"
 DISCUSS_TITLE = "title"
 DISCUSS_MAIN = "content"
 DISCUSS_CONTENT = "content"
+DISCUSS_POSTED = "posted"
+DISCUSS_LIST = "discuss_list"
+
+REPLY_USER_ID = "user_id"
+REPLY_CONTENT = "content"
+REPLY_ID = "thread_id"
+REPLY_POSTED = "reply_posted"
 
 # Flashcards
 FLASHCARD_SET_ID = "set_id"
 FLASHCARD_SET_NAME = "set_name"
 FLASHCARD_ID = "fc_id"
 FLASHCARD_DIFFICULTY = "diff"
+FLASHCARD_PREF = "pref"
+FLASHCARD_QUESTION = "question"
+FLASHCARD_ANSWER = "answer"
+FLASHCARD_DATA = "fc_data"
+FLASHCARD_SET_LIST = "fc_set_list"
 
 STATUS = "Status"
 PROGRESS = "progress"

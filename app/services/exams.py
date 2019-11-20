@@ -18,7 +18,7 @@ mod = Blueprint('exams', __name__, url_prefix='/api')
 
 
 @mod.route('/get_exams', methods=["GET", "POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_tutor_student
 def api_get_exams():
@@ -216,7 +216,7 @@ def api_get_exams():
 
 
 @mod.route('/submit_exam', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_student  # this ensures authentication check
 def api_submit_exam():
@@ -300,7 +300,7 @@ def api_submit_exam():
     student_id = current_user.User_ID
 
     # check if the exam already exists or not
-    exam_id = data["exam_id"]
+    exam_id = data[EXAM_ID]
     exam = exams_dac.get_exam(exam_id)
     if not exam:
         return Response(
@@ -316,7 +316,7 @@ def api_submit_exam():
         ).content(), 200
 
     # if the user has not submitted, make new submission
-    sub = data["sub"]
+    sub = data[ANSWERS]
 
     # get grades
     grade = auto_grade(exam, sub)
@@ -369,7 +369,7 @@ def api_submit_exam():
 
 
 @mod.route('/create_exam', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_tutor  # checks for authentication also
 def api_create_exam():
@@ -397,7 +397,7 @@ def api_create_exam():
                                     type: string
                                     description: Name of the exam
                                     example: Midterm
-                                exam:
+                                questions:
                                     type: array
                                     description : An array of questions
                                     items:
@@ -473,7 +473,7 @@ def api_create_exam():
 
 
 @mod.route('/check_sub', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_check_sub():

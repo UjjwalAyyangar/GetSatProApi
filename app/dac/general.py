@@ -92,3 +92,17 @@ def get_model_field(model_name, data):
         return fc_dac.get_fcpref(data)
     else:
         return None
+
+
+def get_progress(Module, stud_id):
+    exams = Module.Exams.all()
+    total = len(exams)
+    taken = 0
+    for exam in exams:
+        if exams_dac.check_sub_exam(exam.Exam_ID, stud_id):
+            taken += 1
+
+    if total != 0:
+        return (float(taken) / float(total)) * 100
+    else:
+        return 0.0

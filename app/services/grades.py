@@ -18,7 +18,7 @@ mod = Blueprint('grades', __name__, url_prefix='/api')
 
 
 @mod.route('/view_grade', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_grade():
@@ -127,7 +127,7 @@ def api_view_grade():
 
 
 @mod.route('/view_grades', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_grades():
@@ -213,6 +213,7 @@ def api_view_grades():
             """
 
     data = request.get_json()
+
     module_id = data.get(MODULE_ID)
     # print(is_User("Student"), current_user.UserRole.User_Type)
     if is_User("Student") == 200:

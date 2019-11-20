@@ -31,6 +31,7 @@ def get_exams(mod_id=None):
         if mod_id:
             module = Module.query.filter_by(Module_ID=mod_id).one()
             exams = module.Exams.all()
+            print(exams)
             return exams
         else:
             modules = Module.query.all()

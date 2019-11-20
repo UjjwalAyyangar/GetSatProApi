@@ -4,7 +4,8 @@ from functools import wraps
 from app.dac import *
 from flask import jsonify
 
-
+# praeterian pawnable
+# buffer overl
 def get_difficulty(num):
     diff = {
         1: "Easy",

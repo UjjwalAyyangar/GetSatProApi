@@ -4,6 +4,7 @@ from app.system import *
 
 from app.dac import discussions as disc_dac
 from app.dac import general as gen_dac
+from app.dac import modules as mod_dac
 
 from app.constants import *
 
@@ -17,7 +18,7 @@ mod = Blueprint('discussions', __name__, url_prefix='/api')
 
 
 @mod.route('/create_discussion', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_create_discussion():
@@ -91,6 +92,10 @@ def api_create_discussion():
                 """
 
     data = request.get_json()
+    if is_User("Tutor") == 200:
+        mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
+        data[MODULE_ID] = mod_id
+
     data[USER_ID] = current_user.User_ID
 
     new_discus = disc_dac.create_discussion(data)
@@ -110,7 +115,7 @@ def api_create_discussion():
 
 
 @mod.route('/create_discus_thread', methods=["POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_create_discus_thread():
@@ -190,7 +195,12 @@ def api_create_discus_thread():
                                                     type: string
                                                     example: Not found.
                     """
+
     data = request.get_json()
+    if is_User("Tutor") == 200:
+        mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
+        data[MODULE_ID] = mod_id
+
     data["user_id"] = current_user.User_ID
 
     if not disc_dac.disc_exists(data[DISCUSS_ID]):
@@ -210,8 +220,8 @@ def api_create_discus_thread():
         return ErrorResponse(400).content(), 400
 
 
-@mod.route('/view_discussion')
-@cross_origin(supports_credentials=True)
+@mod.route('/view_discussion', methods=["POST"])
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_discussion():
@@ -224,8 +234,10 @@ def api_view_discussion():
 
         for reply in replies:
             temp = {
-                "thread_id": reply.Thread_ID,
-                "content": reply.Message,
+                REPLY_ID: reply.Thread_ID,
+                REPLY_CONTENT: reply.Message,
+                REPLY_USER_ID: reply.User_ID,
+                REPLY_POSTED: reply.Time
             }
             reply_list.append(temp)
 
@@ -236,8 +248,43 @@ def api_view_discussion():
         ret = res.content()
         ret["replies"] = reply_list
         ret["discuss_id"] = data["discuss_id"]
+        ret[DISCUSS_CONTENT] = discuss.Main_Discussion
+        ret[DISCUSS_TITLE] = discuss.Discussion_Title
+        ret[USER_ID] = discuss.User_ID
+        ret[MODULE_ID] = discuss.Module_ID
+        ret[DISCUSS_POSTED] = discuss.Time
 
         return ret, 200
     else:
         res = ErrorResponse(400)
         return res.content(), 400
+
+
+@mod.route('/get_discussions', methods=["GET", "POST"])
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@jwt_required
+@authenticated
+def get_discussions():
+    data = request.get_json()
+    is_POST = request.method == "POST"
+    if not is_POST and is_User("Tutor") == 200:
+        mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
+        data[MODULE_ID] = mod_id
+    elif is_POST and is_User("Tutor") == 200:
+
+        return ErrorResponse(400).content(), 400
+
+    discs = disc_dac.get_discussions(data)
+
+    disc_list = []
+    for disc in discs:
+        temp = {
+            DISCUSS_TITLE: disc.Discussion_Title,
+            DISCUSS_POSTED: disc.Time,
+            DISCUSS_ID: disc.Discussion_ID
+        }
+        disc_list.append(temp)
+
+    res = Response(200, "Fetched all discussions successfully").content()
+    res[DISCUSS_LIST] = disc_list
+    return res, 200

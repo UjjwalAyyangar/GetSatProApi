@@ -18,7 +18,7 @@ mod = Blueprint('modules', __name__, url_prefix='/api')
 
 
 @mod.route('/add_module', methods=['POST'])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin  # checks authentication automatically
 def api_add_module():
@@ -91,7 +91,7 @@ def api_add_module():
 
 
 @mod.route('/get_modules', methods=["GET", "POST"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_student
 def api_get_mods():
@@ -230,26 +230,33 @@ def api_get_mods():
                                             example: Only admins and students are allowed to make this request.
             """
 
-    data = request.get_json()
-    is_POST = request.method == "POST"
-    empty = not (STUDENT_ID in data)
+    # all are enrolled in all
 
-    # Admin cannot make a GET request
-    if not is_POST and is_User("Student") != 200:
-        return ErrorResponse(400).content(), 400
+    is_Post = request.method == "POST"
+    student = is_User("Student") == 200
+    admin = is_User("Admin") == 200
+    prog = False
 
-    # User cannot make a POST request
-    if is_POST and is_User("Student") == 200:
-        return ErrorResponse(400).content(), 400
 
-    if is_POST and not empty:
+
+    if is_Post:
+        data = request.get_json()
+        if student:
+            return ErrorResponse(400).content(), 400
+
+        if not STUDENT_ID in data:
+            return ErrorResponse(400).content(), 400
+
         stud_id = data[STUDENT_ID]
-    else:
+        prog = True
+
+    if student:
         stud_id = current_user.User_ID
+        prog = True
 
     modules = mod_dac.get_modules()
     if not modules:
-        return Response(404, "No modules found").content(404),404
+        return Response(404, "No modules found").content(404), 404
 
     mod_list = []
     for module in modules:
@@ -257,9 +264,9 @@ def api_get_mods():
             MODULE_ID: module.Module_ID,
             MODULE_NAME: module.Module_Name
         }
-        if (not is_POST) or (is_POST and not empty):
-            prog = gen_dac.get_progress(module, stud_id)
-            temp[PROGRESS] = prog
+        if prog:
+            progress = gen_dac.get_progress(module, stud_id)
+            temp[PROGRESS] = progress
 
         mod_list.append(temp)
 
