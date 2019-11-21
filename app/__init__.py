@@ -9,6 +9,7 @@ from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
+from firebase_admin import firestore, credentials, initialize_app
 
 app = Flask(__name__)
 
@@ -16,6 +17,9 @@ app.config.from_object(Config)
 
 CORS(app, support_credentials=True)
 db = SQLAlchemy(app)
+#cred = credentials.Certificate('key.json')
+# firebase_app = initialize_app(cred)
+#firebase_db = firestore.client()
 
 migrate = Migrate(app, db)
 
@@ -34,6 +38,7 @@ from .services import (
     flashcards,
     admin,
     docs
+    # files
 )
 
 app.register_blueprint(users.mod)
@@ -44,6 +49,7 @@ app.register_blueprint(modules.mod)
 app.register_blueprint(flashcards.mod)
 app.register_blueprint(admin.mod)
 app.register_blueprint(docs.mod)
+# app.register_blueprint(files.mod)
 
 # from app import routes
 from app.scripts import openapi

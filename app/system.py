@@ -38,8 +38,8 @@ def auto_grade(Exam, Submission):
             count += 1
 
     print(total)
-    # grade = (float(count) / float(total)) * 100
-    grade = 0.0
+    grade = (float(count) / float(total)) * 100
+    # grade = 0.0
     return grade
 
 

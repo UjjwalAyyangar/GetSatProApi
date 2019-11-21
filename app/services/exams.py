@@ -17,10 +17,38 @@ from flask_jwt_extended import (
 mod = Blueprint('exams', __name__, url_prefix='/api')
 
 
+@mod.route('/view_exam', methods=["POST"])
+@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@jwt_required
+@authenticated
+def api_view_exam():
+    data = request.get_json()
+    exam_id = data[EXAM_ID]
+    exam = exams_dac.get_exam(exam_id)
+    if not exam:
+        return ErrorResponse(404).content(), 404
+
+    questions = exam.Questions.all()
+    ques_list = []
+    for question in questions:
+        options = [question.Option_1, question.Option_2, question.Option_3, question.Option_4]
+        temp = {
+            QUESTION_ID: question.Question_ID,
+            QUESTION: question.Question,
+            QUESTION_OPTIONS: options
+        }
+        ques_list.append(temp)
+
+    res = Response(200, "Successfully fetched Questions").content()
+    res[QUESTIONS] = ques_list
+    res[EXAM_NAME] = exam.Exam_Name
+    return res, 200
+
+
 @mod.route('/get_exams', methods=["GET", "POST"])
 @cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
-@is_tutor_student
+@authenticated
 def api_get_exams():
     """ End-point for getting list of Exams.
        ---
@@ -155,18 +183,22 @@ def api_get_exams():
     # POST - module_id - for students
     # GET - for tutor and students
 
-    data = request.get_json()
     stud_id, tut_id, mod_id = (None, None, None)
+    is_POST = request.method == "POST"
+    if is_POST:
+        data = request.get_json()
+
     if is_User('Tutor') == 200:
-        if request.method == "POST":
+        if is_POST:
             return ErrorResponse(400).content(), 400
 
         tut_id = current_user.User_ID
         mod_id = mod_dac.get_tutor_module(tut_id).Module_ID
     else:
         stud_id = current_user.User_ID
-        if MODULE_ID in data:
-            mod_id = data[MODULE_ID]
+        if is_POST:
+            if MODULE_ID in data:
+                mod_id = data[MODULE_ID]
 
     if mod_id:
         Exams = exams_dac.get_exams(mod_id)

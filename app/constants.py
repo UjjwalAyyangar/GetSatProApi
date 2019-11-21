@@ -73,3 +73,5 @@ FLASHCARD_SET_LIST = "fc_set_list"
 
 STATUS = "Status"
 PROGRESS = "progress"
+
+FILE_PATH = "file_path"
