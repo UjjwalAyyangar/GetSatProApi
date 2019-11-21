@@ -97,6 +97,7 @@ def create_question(data):
         Option_1=data[QUESTION_OPTIONS][0],
         Option_2=data[QUESTION_OPTIONS][1],
         Option_3=data[QUESTION_OPTIONS][2],
+        Option_4=data[QUESTION_OPTIONS][3],
         Correct_ans=data[QUESTION_ANS]
     )
 

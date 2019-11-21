@@ -68,6 +68,7 @@ def move_down(pref_card, pref):
 
     if pref_card.Count < 0:
         pref_card.Difficulty = max(1, pref_card.Difficulty - 1)
+        pref_card.Count = 3 + pref_card.Count
 
     return pref_card
 
@@ -143,12 +144,17 @@ def get_next_flashcard(set_id):
         return None
 
     pref_to_choose = prob_fetch()
-
-    cards = FC_Preference.query.filter_by(Difficulty=2).all()
-    if len(cards) > 0:
-        return cards[randint(0, len(cards) - 1)]
+    # print(pref_to_choose,"#")
+    set_cards = fc_set.Flashcards
+    cards = set_cards.join(FC_Preference)
+    pref_cards = cards.filter_by(Difficulty=pref_to_choose).all()
+    rest_cards = cards.all()
+    # print(pref_cards)
+    # print(rest_cards)
+    if len(pref_cards) > 0:
+        return pref_cards[randint(0, len(pref_cards) - 1)]
     else:
-        return None
+        return rest_cards[randint(0, len(rest_cards) - 1)]
     """
 
     print(cards)
