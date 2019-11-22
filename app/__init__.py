@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 # resources={r"/foo": {"origins": "http://localhost:port"}}
-CORS(app, support_credentials=True, resources={r"/get_students": {"origins": "http://localhost:3000"}})
+CORS(app, support_credentials=True)  # , resources={r"/get_students": {"origins": "http://localhost:3000"}})
 db = SQLAlchemy(app)
 # cred = credentials.Certificate('key.json')
 # firebase_app = initialize_app(cred)
