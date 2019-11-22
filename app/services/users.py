@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify
 from flask import abort, request
 from app.system import *
 from app.constants import *
+from datetime import datetime
+import pytz
 
 from app.dac import users as users_dac
 
@@ -20,12 +22,16 @@ from flask_jwt_extended import (
 )
 
 mod = Blueprint('users', __name__, url_prefix='/api')
+est = pytz.timezone('US/Eastern')
+utc = pytz.utc
 
 
 @login.user_loader
 def load_user(id):
     # print(id)
     return UserInfo.query.filter_by(User_ID=int(id)).one()
+
+    #return logged_user
 
 
 @mod.route('/register', methods=["POST"])
@@ -277,6 +283,8 @@ def login():
 
         data["Status"] = 200
         data["message"] = "User logged in successfully"
+        user.Last_Login = datetime.now(est)
+        db.session.commit()
         login_user(user)
         return jsonify(data)
 
