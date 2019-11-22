@@ -500,7 +500,8 @@ def api_create_exam():
         "Exam was created successfully"
     )
     res = gen_dac.exists('Exam', exam, res)
-
+    res = res.content()
+    res[EXAM_ID] = exam.Exam_ID
     return res.content(), res.code
 
 

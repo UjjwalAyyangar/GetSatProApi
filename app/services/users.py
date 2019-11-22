@@ -461,7 +461,7 @@ def api_get_students():
 
         ret[STUDENTS] = stud_list
         response = jsonify(ret)
-        # response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Origin', '*')
 
         return response, 200
     else:
