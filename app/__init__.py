@@ -9,17 +9,19 @@ from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
+
 # from firebase_admin import firestore, credentials, initialize_app
 
 app = Flask(__name__)
+# cors = CORS(app, resources={r"/foo": {"origins": "http://localhost:port"}})
 
 app.config.from_object(Config)
-
-CORS(app, support_credentials=True)
+# resources={r"/foo": {"origins": "http://localhost:port"}}
+CORS(app, support_credentials=True, resources={r"/get_students": {"origins": "http://localhost:3000"}})
 db = SQLAlchemy(app)
-#cred = credentials.Certificate('key.json')
+# cred = credentials.Certificate('key.json')
 # firebase_app = initialize_app(cred)
-#firebase_db = firestore.client()
+# firebase_db = firestore.client()
 
 migrate = Migrate(app, db)
 
