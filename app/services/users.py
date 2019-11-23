@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, make_response
 from flask import abort, request
 from app.system import *
 from app.constants import *
@@ -31,7 +31,7 @@ def load_user(id):
     # print(id)
     return UserInfo.query.filter_by(User_ID=int(id)).one()
 
-    #return logged_user
+    # return logged_user
 
 
 @mod.route('/register', methods=["POST"])
@@ -286,7 +286,12 @@ def login():
         user.Last_Login = datetime.now(est)
         db.session.commit()
         login_user(user)
-        return jsonify(data)
+
+        ret = make_response(jsonify(data))
+        ret.set_cookie('same-site-cookie', 'foo', samesite='Lax');
+        # Ensure you use "add" to not overwrite existing cookie headers
+        ret.headers.add('Set-Cookie', 'cross-site-cookie=bar; SameSite=None; Secure')
+        return ret
 
     else:
         return jsonify({
