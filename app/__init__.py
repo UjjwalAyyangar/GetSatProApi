@@ -17,9 +17,9 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 app.config.update(
-    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SAMESITE=None,
 )
-# print(app.config)
+print(app.config)
 # resources={r"/foo": {"origins": "http://localhost:port"}}
 CORS(app, support_credentials=True)  # , resources={r"/get_students": {"origins": "http://localhost:3000"}})
 db = SQLAlchemy(app)
