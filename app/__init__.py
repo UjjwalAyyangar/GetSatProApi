@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 app.config.update(
-    SESSION_COOKIE_SAMESITE=False,
+    SESSION_COOKIE_SAMESITE='Lax',
 )
 #print(app.config)
 # resources={r"/foo": {"origins": "http://localhost:port"}}
