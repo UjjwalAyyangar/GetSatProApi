@@ -12,6 +12,10 @@ class Config(object):
     # 'postgresql://localhost/getSatPro.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CORS_HEADERS = 'Content-Type'
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ORIGIN_WHITELIST = (
+        'localhost:3000'
+    )
     # SESSION_COOKIE_SAMESITE = 'Lax'
 
 # 'sqlite:///getSatPro.db' 'sqlite:///' +
