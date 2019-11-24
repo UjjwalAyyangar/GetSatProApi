@@ -502,7 +502,7 @@ def api_create_exam():
     res = gen_dac.exists('Exam', exam, res)
     res = res.content()
     res[EXAM_ID] = exam.Exam_ID
-    return res.content(), res.code
+    return res, 200
 
 
 @mod.route('/check_sub', methods=["POST"])

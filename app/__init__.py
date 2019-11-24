@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 
+
 # from firebase_admin import firestore, credentials, initialize_app
 
 app = Flask(__name__)
@@ -51,7 +52,7 @@ app.register_blueprint(modules.mod)
 app.register_blueprint(flashcards.mod)
 app.register_blueprint(admin.mod)
 app.register_blueprint(docs.mod)
-# app.register_blueprint(files.mod)
+# app.register_blueprint(files.mod)g
 
 # from app import routes
 from app.scripts import openapi

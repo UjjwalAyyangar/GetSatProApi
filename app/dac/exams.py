@@ -91,13 +91,21 @@ def create_question(data):
     :param data: a dictionary that contains the information about a new question
     :return: None if there was trouble creating a question, a Question model object otherwise
     """
+
+    options = data[QUESTION_OPTIONS]
+    for i in range(4):
+        try:
+            access = options[i]
+        except:
+            options.append(None)
+
     new_question = ExamQuestion(
         Exam_ID=data[EXAM_ID],
         Question=data[QUESTION],
-        Option_1=data[QUESTION_OPTIONS][0],
-        Option_2=data[QUESTION_OPTIONS][1],
-        Option_3=data[QUESTION_OPTIONS][2],
-        Option_4=data[QUESTION_OPTIONS][3],
+        Option_1=options[0],
+        Option_2=options[1],
+        Option_3=options[2],
+        Option_4=options[3],
         Correct_ans=data[QUESTION_ANS]
     )
 
