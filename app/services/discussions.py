@@ -2,7 +2,6 @@ from flask import Blueprint
 from flask import request
 from app.system import *
 
-
 from app.dac import discussions as disc_dac
 from app.dac import general as gen_dac
 from app.dac import modules as mod_dac
@@ -108,6 +107,8 @@ def api_create_discussion():
         )
 
         res = gen_dac.exists('Discussion', new_discus, res)
+        ret = res.content()
+        ret[DISCUSS_ID] = new_discus.Discussion_ID
 
         return res.content(), 200
     except:
