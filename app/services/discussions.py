@@ -110,7 +110,7 @@ def api_create_discussion():
         ret = res.content()
         ret[DISCUSS_ID] = new_discus.Discussion_ID
 
-        return res.content(), 200
+        return ret, 200
     except:
         res = ErrorResponse(400)
         return res.content(), 400

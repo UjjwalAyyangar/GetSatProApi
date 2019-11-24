@@ -14,9 +14,16 @@ from app.dac import general as gen
 
 def get_discussion(data):
     try:
-        return Discussion.query.filter_by(
-            Discussion_ID=data[DISCUSS_ID]
-        ).one()
+        if isinstance(data, dict):
+            return Discussion.query.filter_by(
+                Discussion_ID=data[DISCUSS_ID]
+            ).one()
+        elif isinstance(data, int):
+            return Discussion.query.filter_by(
+                Discussion_ID=data
+            ).one()
+
+
     except sqlalchemy.orm.exc.NoResultFound:
         return None
 
@@ -24,8 +31,8 @@ def get_discussion(data):
 def get_discussions(data):
     try:
         module = mod_dac.get_module(data[MODULE_ID])
-        #print("Module is",module)
-        #print(module.Discussions.all())
+        # print("Module is",module)
+        # print(module.Discussions.all())
         return module.Discussions.all()
     except:
         return None
