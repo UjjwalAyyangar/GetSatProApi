@@ -13,6 +13,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CORS_HEADERS = 'Content-Type'
     CORS_ALLOW_CREDENTIALS = True
+    SESSION_COOKIE_SECURE = True
     CORS_ORIGIN_WHITELIST = (
         'localhost:3000'
     )
