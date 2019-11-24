@@ -288,9 +288,6 @@ def login():
         login_user(user)
 
         ret = make_response(jsonify(data))
-        ret.set_cookie('same-site-cookie', 'foo', samesite='Lax');
-        # Ensure you use "add" to not overwrite existing cookie headers
-        ret.headers.add('Set-Cookie', 'cross-site-cookie=bar; SameSite=None; Secure')
         return ret
 
     else:

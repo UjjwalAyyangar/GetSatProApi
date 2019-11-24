@@ -12,11 +12,9 @@ class Config(object):
     # 'postgresql://localhost/getSatPro.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CORS_HEADERS = 'Content-Type'
-
-
+    # SESSION_COOKIE_SAMESITE = 'Lax'
 
 # 'sqlite:///getSatPro.db' 'sqlite:///' +
 
 # 'postgresql://localhost/wordcount_dev'
 # 'sqlite:///' '+ os.path.join(basedir,' 'getSatPro.db')
-

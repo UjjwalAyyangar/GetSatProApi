@@ -85,7 +85,7 @@ def api_del():
     model_id = data[MODEL_ID]
     model_name = data[MODEL_NAME]
 
-    if model_name != "Exam" and is_User("Tutor") == 200:
+    if (model_name != "Exam" or model_name != "Discussion") and is_User("Tutor") == 200:
         return Response(
             401,
             "Only an admin can delete this").content(), 401
