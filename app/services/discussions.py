@@ -267,10 +267,11 @@ def api_view_discussion():
 @jwt_required
 @authenticated
 def get_discussions():
-
     is_POST = request.method == "POST"
     if is_POST:
         data = request.get_json()
+    else:
+        data = {}
     if not is_POST and is_User("Tutor") == 200:
         mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
         data[MODULE_ID] = mod_id
