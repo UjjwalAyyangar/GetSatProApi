@@ -18,7 +18,7 @@ mod = Blueprint('modules', __name__, url_prefix='/api')
 
 
 @mod.route('/add_module', methods=['POST'])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin  # checks authentication automatically
@@ -92,7 +92,7 @@ def api_add_module():
 
 
 @mod.route('/get_modules', methods=["GET", "POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_student

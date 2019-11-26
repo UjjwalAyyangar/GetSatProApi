@@ -13,7 +13,7 @@ mod = Blueprint('admin', __name__, url_prefix='/api')
 
 
 @mod.route('/delete', methods=['POST'])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_tutor  # Checks authentication automatically

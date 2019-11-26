@@ -10,6 +10,6 @@ mod = Blueprint('docs', __name__)
 @mod.route('/')
 @mod.route('/doc')
 @mod.route('/index')
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins="*", headers=['Content- Type', 'Authorization'], supports_credentials=True)
 def doc():
     return render_template('doc.html')

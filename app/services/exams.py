@@ -18,7 +18,7 @@ mod = Blueprint('exams', __name__, url_prefix='/api')
 
 
 @mod.route('/view_exam', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -84,7 +84,7 @@ def api_view_exam():
 
 
 @mod.route('/get_exams', methods=["GET", "POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -287,7 +287,7 @@ def api_get_exams():
 
 
 @mod.route('/submit_exam', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_student  # this ensures authentication check
@@ -441,7 +441,7 @@ def api_submit_exam():
 
 
 @mod.route('/create_exam', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_tutor  # checks for authentication also
@@ -547,7 +547,7 @@ def api_create_exam():
 
 
 @mod.route('/check_sub', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated

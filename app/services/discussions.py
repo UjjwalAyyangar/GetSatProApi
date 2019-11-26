@@ -18,7 +18,7 @@ mod = Blueprint('discussions', __name__, url_prefix='/api')
 
 
 @mod.route('/create_discussion', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -118,7 +118,7 @@ def api_create_discussion():
 
 
 @mod.route('/create_discuss_thread', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -225,7 +225,7 @@ def api_create_discus_thread():
 
 
 @mod.route('/view_discussion', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -266,7 +266,7 @@ def api_view_discussion():
 
 
 @mod.route('/get_discussions', methods=["GET", "POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated

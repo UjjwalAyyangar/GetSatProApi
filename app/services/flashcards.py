@@ -18,7 +18,7 @@ mod = Blueprint('flashcards', __name__, url_prefix='/api')
 
 # Flashcard
 @mod.route('/view_flashcard_sets', methods=["GET", "POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -44,7 +44,7 @@ def api_view_sets():
 
 
 @mod.route('/view_flashcard_set', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
@@ -82,7 +82,7 @@ def api_view_set():
 
 
 @mod.route('/set_pref', methods=["POST"])
-@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+@cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_student
