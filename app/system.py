@@ -4,6 +4,7 @@ from functools import wraps
 from app.dac import *
 from flask import jsonify
 
+
 # praeterian pawnable
 # buffer overl
 def get_difficulty(num):
@@ -21,6 +22,15 @@ def parse_ans(Submission):
         data[ans["ques_id"]] = ans["ans"]
 
     return data
+
+
+def parse_options(options):
+    temp = []
+    for option in options:
+        if option is not None:
+            temp.append(option)
+
+    return temp
 
 
 def auto_grade(Exam, Submission):
@@ -99,6 +109,7 @@ def is_admin_tutor(function):
 
     return wrap
 
+
 # decorator
 def is_admin_student(function):
     @wraps(function)
@@ -113,6 +124,7 @@ def is_admin_student(function):
 
     return wrap
 
+
 # decorator
 def is_tutor_student(function):
     @wraps(function)
@@ -126,6 +138,7 @@ def is_tutor_student(function):
             ).content(), 401
 
     return wrap
+
 
 # decorator
 def is_student(function):

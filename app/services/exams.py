@@ -49,15 +49,17 @@ def api_view_exam():
     for question in questions:
         total += 1
         options = [question.Option_1, question.Option_2, question.Option_3, question.Option_4]
+        options = parse_options(options)
         correct_answer = question.Correct_ans
         temp = {
             QUESTION_ID: question.Question_ID,
             QUESTION: question.Question,
             QUESTION_OPTIONS: options,
-            QUESTION_ANS: correct_answer
         }
+
         if submitted:
             user_answer = answers.filter_by(Question_ID=question.Question_ID).one().Ans
+            temp[QUESTION_ANS] = correct_answer
             temp[USER_ANSWER] = user_answer
 
             if user_answer == correct_answer:
@@ -65,6 +67,9 @@ def api_view_exam():
                 correct += 1
             else:
                 temp[QUESTION_STATUS] = "Incorrect"
+        else:
+            if not isStudent:
+                temp[QUESTION_ANS] = correct_answer
 
         ques_list.append(temp)
 
