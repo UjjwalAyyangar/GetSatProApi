@@ -111,7 +111,7 @@ class ExamQuestion(db.Model):
     Option_2 = Column(String(100))
     Option_3 = Column(String(100))
     Option_4 = Column(String(100))
-    Correct_ans = Column(Integer, nullable=False)
+    Correct_ans = Column(String(100), nullable=False)
     Exam_ID = Column(Integer, db.ForeignKey('exam.Exam_ID'))
 
 

@@ -30,16 +30,48 @@ def api_view_exam():
 
     questions = exam.Questions.all()
     ques_list = []
+    isStudent = is_User("Student") == 200
+    if isStudent:
+        submitted = exams_dac.check_sub_exam(exam_id, current_user.User_ID)
+    else:
+        submitted = False
+
+    if submitted:
+        user_sheet = exams_dac.get_ans_sheet({
+            EXAM_ID: exam_id,
+            STUDENT_ID: current_user.User_ID
+        })
+
+        answers = user_sheet.Answers
+
+    total = 0
+    correct = 0
     for question in questions:
+        total += 1
         options = [question.Option_1, question.Option_2, question.Option_3, question.Option_4]
+        correct_answer = question.Correct_ans
         temp = {
             QUESTION_ID: question.Question_ID,
             QUESTION: question.Question,
-            QUESTION_OPTIONS: options
+            QUESTION_OPTIONS: options,
+            QUESTION_ANS: correct_answer
         }
+        if submitted:
+            user_answer = answers.filter_by(Question_ID=question.Question_ID).one().Ans
+            temp[USER_ANSWER] = user_answer
+
+            if user_answer == correct_answer:
+                temp[QUESTION_STATUS] = "Correct"
+                correct += 1
+            else:
+                temp[QUESTION_STATUS] = "Incorrect"
+
         ques_list.append(temp)
 
     res = Response(200, "Successfully fetched Questions").content()
+    if submitted:
+        res[GRADE] = (float(correct) / float(total)) * 100
+
     res[QUESTIONS] = ques_list
     res[EXAM_NAME] = exam.Exam_Name
     return res, 200

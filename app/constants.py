@@ -38,11 +38,14 @@ QUESTION_ANS = "ans"
 QUESTION_OPTIONS = "options"  # pass as a list
 QUESTIONS = "questions"
 QUESTION_NO = "ques_no"  # number of questions
+QUESTION_STATUS = "ques_status"
 # Answer Sheet
 ANSWER = "ans"
 ANSWERS = "answers"
 SUBMITTED = "submitted"
 COMPLETED = "completed"
+USER_ANSWER = "user_answer"
+
 # Report
 GRADE = "grade"
 SHEET_ID = "sheet_id"

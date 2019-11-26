@@ -126,6 +126,17 @@ def create_ans_sheet(data):
     return gen_dac.insert(new_ans_sheet)
 
 
+def get_ans_sheet(data):
+    try:
+        return StudentAnswerSheet.query.filter_by(
+            Exam_ID=data[EXAM_ID],
+            Student_ID=data[STUDENT_ID]
+        ).one()
+
+    except sqlalchemy.orm.exc.NoResultFound:
+        return None
+
+
 def create_ans(data, sheet=None):
     new_ans = UserAnswer(
         Student_ID=data[STUDENT_ID],
