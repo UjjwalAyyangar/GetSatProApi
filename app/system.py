@@ -20,7 +20,6 @@ def parse_ans(Submission):
     data = {}
     for ans in Submission:
         data[ans["ques_id"]] = ans["ans"]
-
     return data
 
 
@@ -35,6 +34,7 @@ def parse_options(options):
 
 def auto_grade(Exam, Submission):
     questions = Exam.Questions.all()
+
     total = 0
     count = 0
     parsed_ans = parse_ans(Submission)
@@ -47,8 +47,7 @@ def auto_grade(Exam, Submission):
         if user_ans == cor_ans:
             count += 1
 
-    print(total)
-    grade = (float(count) / float(total)) * 100
+    grade = round((float(count) / float(total)) * 100, 2)
     # grade = 0.0
     return grade
 

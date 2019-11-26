@@ -41,7 +41,7 @@ QUESTION_NO = "ques_no"  # number of questions
 QUESTION_STATUS = "ques_status"
 # Answer Sheet
 ANSWER = "ans"
-ANSWERS = "answers"
+ANSWERS = "sub"
 SUBMITTED = "submitted"
 COMPLETED = "completed"
 USER_ANSWER = "user_answer"
