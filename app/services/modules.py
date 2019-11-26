@@ -18,7 +18,8 @@ mod = Blueprint('modules', __name__, url_prefix='/api')
 
 
 @mod.route('/add_module', methods=['POST'])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin  # checks authentication automatically
 def api_add_module():
@@ -91,7 +92,8 @@ def api_add_module():
 
 
 @mod.route('/get_modules', methods=["GET", "POST"])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_student
 def api_get_mods():
@@ -236,8 +238,6 @@ def api_get_mods():
     student = is_User("Student") == 200
     admin = is_User("Admin") == 200
     prog = False
-
-
 
     if is_Post:
         data = request.get_json()

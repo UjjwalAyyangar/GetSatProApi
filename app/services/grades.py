@@ -18,7 +18,8 @@ mod = Blueprint('grades', __name__, url_prefix='/api')
 
 
 @mod.route('/view_grade', methods=["POST"])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_grade():
@@ -127,7 +128,8 @@ def api_view_grade():
 
 
 @mod.route('/view_grades', methods=["POST"])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @authenticated
 def api_view_grades():

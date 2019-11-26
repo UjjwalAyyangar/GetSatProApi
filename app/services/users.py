@@ -35,7 +35,8 @@ def load_user(id):
 
 
 @mod.route('/register', methods=["POST"])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 def register():
     """ End-point for user registration.
     ---
@@ -161,7 +162,8 @@ def register():
 
 
 @mod.route('/login', methods=['POST'])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 def login():
     """ End-point for logging in exams.
             ---
@@ -288,8 +290,8 @@ def login():
         login_user(user)
 
         ret = make_response(jsonify(data))
-        #cookies = request.cookies
-        #print (cookies)
+        # cookies = request.cookies
+        # print (cookies)
         # ret.set_cookie('same-site-cookie', 'foo', samesite='Lax')
         # ret.set_cookie('cross-site-cookie', 'bar', samesite='Lax', secure=True)
         # ret.headers.add('Set-Cookie', 'same-site-cookie=foo; SameSite=None; Secure')
@@ -305,7 +307,8 @@ def login():
 
 
 @mod.route('/logout')
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @authenticated
 # @jwt_required
 def logout():
@@ -367,7 +370,8 @@ def logout():
 
 
 @mod.route('/refresh', methods=['POST'])
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_refresh_token_required
 def refresh():
     current_user = get_jwt_identity()
@@ -384,7 +388,8 @@ def unauthorized_response(callback):
 
 
 @mod.route('/get_students')
-@cross_origin(origin='localhost', headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@cross_origin(origins=['https://get-sat-pro-client.herokuapp.com', 'localhost'],
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
 @is_admin_tutor
 def api_get_students():
