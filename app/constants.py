@@ -73,6 +73,7 @@ FLASHCARD_QUESTION = "question"
 FLASHCARD_ANSWER = "answer"
 FLASHCARD_DATA = "fc_data"
 FLASHCARD_SET_LIST = "fc_set_list"
+FLASHCARD_PROGRESS = "fc_progress"
 
 STATUS = "Status"
 PROGRESS = "progress"

@@ -69,6 +69,13 @@ def api_view_set():
 
     res = Response(200, "Successfully fetched the first card").content()
     res[FLASHCARD_DATA] = card_data
+
+    if is_User("Student") == 200:
+        res[FLASHCARD_PROGRESS] = fc_dac.get_progress({
+            STUDENT_ID: current_user.User_ID,
+            FLASHCARD_SET_ID: set_id
+        })
+
     return res, 200
 
 
@@ -105,6 +112,10 @@ def api_set_pref():
         ).content()
 
         ret[FLASHCARD_DATA] = next_card_data
+        ret[FLASHCARD_PROGRESS] = fc_dac.get_progress({
+            STUDENT_ID: current_user.User_ID,
+            FLASHCARD_SET_ID: next_card.Set_ID
+        })
 
         return ret, 200
     else:
