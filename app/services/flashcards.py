@@ -63,7 +63,8 @@ def api_view_set():
     card_data = {
         FLASHCARD_SET_ID: first_card.Set_ID,
         FLASHCARD_QUESTION: first_card.Question,
-        FLASHCARD_ANSWER: first_card.Answer
+        FLASHCARD_ANSWER: first_card.Answer,
+        FLASHCARD_ID: first_card.FC_ID
     }
 
     res = Response(200, "Successfully fetched the first card").content()
