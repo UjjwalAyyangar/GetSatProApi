@@ -52,7 +52,6 @@ def get_fc_pref_all(data):
             FC_Preference.FC_ID == Flashcard.FC_ID).filter(FC_Preference.Student_ID == data[STUDENT_ID]).filter(
             Flashcard.Set_ID == data[FLASHCARD_SET_ID])
 
-        # print(all_pref_cards[0])
         return all_pref_cards
     except sqlalchemy.orm.exc.NoResultFound:
         return None
@@ -193,3 +192,16 @@ def get_next_flashcard(set_id, stud_id):
     card = cards[randint(0, len(cards) - 1)]
     return card
     """
+
+
+def reset_flashcard_set(data):
+    try:
+        pref_cards = get_fc_pref_all(data).all()
+        for pref_card in pref_cards:
+            pref_card.Difficulty = 2
+            db.session.commit()
+
+        return True
+    except Exception as e:
+        print(e)
+        return False

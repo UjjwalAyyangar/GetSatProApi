@@ -123,3 +123,18 @@ def api_set_pref():
         return ret, 200
     else:
         return ErrorResponse(400).content(), 400
+
+
+@mod.route('/reset_flashcard_set', methods=["POST"])
+@cross_origin(origins="*",
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@jwt_required
+@is_student
+def api_reset_set():
+    data = request.get_json()
+    data[STUDENT_ID] = current_user.User_ID
+    reset = fc_dac.reset_flashcard_set(data)
+    if not reset:
+        return ErrorResponse(404).content(), 200
+
+    return Response(200, "All flashcards of this set have been reset").content(), 200

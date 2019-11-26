@@ -5,6 +5,7 @@ from app.system import *
 from app.dac import discussions as disc_dac
 from app.dac import general as gen_dac
 from app.dac import modules as mod_dac
+from app.dac import users as users_dac
 
 from app.constants import *
 
@@ -238,11 +239,15 @@ def api_view_discussion():
         replies = discuss.Replies.all()
 
         for reply in replies:
+            reply_user = users_dac.get_user(user_id=reply.User_ID)
             temp = {
                 REPLY_ID: reply.Thread_ID,
                 REPLY_CONTENT: reply.Message,
                 REPLY_USER_ID: reply.User_ID,
-                REPLY_POSTED: reply.Time
+                REPLY_POSTED: reply.Time,
+                USER_FNAME: reply_user.First_Name,
+                USER_LNAME: reply_user.Last_Name,
+                USERNAME: reply_user.Username
             }
             reply_list.append(temp)
 
@@ -251,6 +256,7 @@ def api_view_discussion():
             "Fetched discussion successfully"
         )
         ret = res.content()
+        author = users_dac.get_user(user_id=discuss.User_ID)
         ret["replies"] = reply_list
         ret["discuss_id"] = data["discuss_id"]
         ret[DISCUSS_CONTENT] = discuss.Main_Discussion
@@ -258,6 +264,9 @@ def api_view_discussion():
         ret[USER_ID] = discuss.User_ID
         ret[MODULE_ID] = discuss.Module_ID
         ret[DISCUSS_POSTED] = discuss.Time
+        ret[USERNAME] = author.Username
+        ret[USER_FNAME] = author.First_Name
+        ret[USER_LNAME] = author.Last_Name
 
         return ret, 200
     else:
