@@ -16,7 +16,6 @@ app = Flask(__name__)
 # cors = CORS(app, resources={r"/foo": {"origins": "http://localhost:port"}})
 
 app.config.from_object(Config)
-
 # app.config.update(
 #    SESSION_COOKIE_SAMESITE='Lax',
 # )
@@ -45,8 +44,8 @@ from .services import (
     modules,
     flashcards,
     admin,
-    docs
-    # files
+    docs,
+    files
 )
 
 app.register_blueprint(users.mod)
@@ -57,7 +56,7 @@ app.register_blueprint(modules.mod)
 app.register_blueprint(flashcards.mod)
 app.register_blueprint(admin.mod)
 app.register_blueprint(docs.mod)
-# app.register_blueprint(files.mod)g
+app.register_blueprint(files.mod)
 
 # from app import routes
 from app.scripts import openapi

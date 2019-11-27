@@ -79,3 +79,4 @@ STATUS = "Status"
 PROGRESS = "progress"
 
 FILE_PATH = "file_path"
+FOLDER = "folder"

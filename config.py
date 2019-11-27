@@ -1,6 +1,8 @@
 import os
 import datetime
 
+# from os.path import join, dirname, realpath
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -12,6 +14,9 @@ class Config(object):
     # 'postgresql://localhost/getSatPro.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CORS_HEADERS = 'Content-Type'
+
+    UPLOAD_FOLDER = os.path.join(basedir, "files")
+
     CORS_ALLOW_CREDENTIALS = True
     # SESSION_COOKIE_SECURE = True
     CORS_ORIGIN_WHITELIST = (

@@ -172,6 +172,15 @@ def complete_request(data):
     return True
 
 
+def is_acceptable_file(filename):
+    file_ext = filename.split('.')[1].lower()
+    allowed_extensions = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+    if file_ext in allowed_extensions:
+        return True
+    else:
+        return False
+
+
 class Response():
     def __init__(self, code=200, msg=None):
         self.code = code
