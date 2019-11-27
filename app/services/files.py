@@ -38,8 +38,8 @@ mod = Blueprint('files', __name__, url_prefix='/api')
 @mod.route('/add_file', methods=["GET", "POST"])
 @cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
-@jwt_required
-@authenticated
+# @jwt_required
+# @authenticated
 def upload_file():
     if request.method == "GET":
         return '''
