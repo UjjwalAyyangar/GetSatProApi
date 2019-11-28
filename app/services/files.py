@@ -68,10 +68,12 @@ def add_file():
         if not new_file:
             return ErrorResponse(500).content(), 500
 
-        return Response(
+        ret = Response(
             "File uploaded successfully",
             200
-        ).content(), 200
+        ).content()
+        ret[FILE_ID] = new_file.File_ID
+        return ret, 200
     else:
         return ErrorResponse(404).content(), 404
 
