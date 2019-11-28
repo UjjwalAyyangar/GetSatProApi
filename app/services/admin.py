@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from flask import abort, request
 from flask_cors import cross_origin
 from app.system import *
+import gcloud
 from app.dac import general as gen
 from app.constants import *
 from app import storage
@@ -102,8 +103,14 @@ def api_del():
         return ErrorResponse(500).content(), 500
 
     if model_name == "File":
-        file = storage.child(field.File_Name)
-        storage.delete(file)
+        mod_id = field.Module_ID
+        folder = get_folder(mod_id)
+        file_path = "{}/{}".format(folder, field.File_Name)
+        try:
+            storage.delete(file_path)
+        except gcloud.exceptions.NotFound:
+            return ErrorResponse(404).content(), 404
+
     return Response(
         200,
         "Successfully deleted."
