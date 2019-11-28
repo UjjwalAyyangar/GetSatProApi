@@ -92,6 +92,7 @@ class Module(db.Model):
     Module_Name = Column(String(100), nullable=False, unique=True)
 
     Exams = rel_obj.one_to_many('Module', 'Exam')  # 1 module will have many exams
+    Files = rel_obj.one_to_many('Module', 'File')
     Sets = rel_obj.one_to_many('Module', 'FlashcardSet')  # 1 module will have many flashcards
     Discussions = rel_obj.one_to_many('Module', 'Discussion')
 
@@ -220,6 +221,15 @@ class DiscussionThread(db.Model):
     Message = Column(String(10000), nullable=False)
     Time = Column(DateTime, default=datetime.now())
 
+
 # engine = create_engine('sqlite:///getSatPro.db')
 # Base.metadata.create_all(engine)
 # db.create_all()
+
+class File(db.Model):
+    File_ID = Column(Integer, primary_key=True)
+    File_Name = Column(String(1000), nullable=False)
+    Publisher_ID = Column(Integer, db.ForeignKey('user_info.User_ID'))
+    Module_ID = Column(Integer, db.ForeignKey('module.Module_ID'))
+    Link = Column(String(10000), nullable=False)
+    Time = Column(DateTime, default=datetime.now())

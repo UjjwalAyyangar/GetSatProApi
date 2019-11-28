@@ -4,6 +4,8 @@ from flask_cors import cross_origin
 from app.system import *
 from app.dac import general as gen
 from app.constants import *
+from app import storage
+from app.dac import files as files_dac
 
 from flask_jwt_extended import (
     jwt_required
@@ -86,7 +88,7 @@ def api_del():
     model_id = data[MODEL_ID]
     model_name = data[MODEL_NAME]
 
-    if is_User("Tutor") == 200 and not (model_name == "Exam" or model_name == "Discussion"):
+    if is_User("Tutor") == 200 and not (model_name == "Exam" or model_name == "Discussion" or model_name == "File"):
         return Response(
             401,
             "Only an admin can delete this").content(), 401
@@ -99,6 +101,9 @@ def api_del():
     if not deleted:
         return ErrorResponse(500).content(), 500
 
+    if model_name == "File":
+        file = storage.child(field.File_Name)
+        storage.delete(file)
     return Response(
         200,
         "Successfully deleted."

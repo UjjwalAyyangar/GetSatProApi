@@ -80,3 +80,10 @@ PROGRESS = "progress"
 
 FILE_PATH = "file_path"
 FOLDER = "folder"
+
+FILE_ID = "file_id"
+FILE_NAME = "file_name"
+PUB_ID = "user_id"
+FILE_LINK = "link"
+FILE_PUB_TIME = "published"
+FILE_LIST = "file_list"

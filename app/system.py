@@ -55,9 +55,9 @@ def auto_grade(Exam, Submission):
 # decorator
 def authenticated(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if current_user.is_authenticated:
-            return function()
+            return function(*args, **kwargs)
         else:
             return ErrorResponse(400).content(), 400
 
@@ -67,9 +67,9 @@ def authenticated(function):
 # decorator
 def is_admin(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if is_User('Admin') == 200:
-            return function()
+            return function(*args, **kwargs)
         else:
             return Response(
                 401,
@@ -82,9 +82,9 @@ def is_admin(function):
 # decorator
 def is_tutor(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if is_User('Tutor') == 200:
-            return function()
+            return function(*args, **kwargs)
         else:
             return Response(
                 401,
@@ -97,9 +97,9 @@ def is_tutor(function):
 # decorator
 def is_admin_tutor(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if is_User('Tutor') == 200 or is_User('Admin') == 200:
-            return function()
+            return function(*args, **kwargs)
         else:
             return Response(
                 401,
@@ -112,9 +112,9 @@ def is_admin_tutor(function):
 # decorator
 def is_admin_student(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if is_User('Student') == 200 or is_User('Admin') == 200:
-            return function()
+            return function(*args, **kwargs)
         else:
             return Response(
                 401,
@@ -127,9 +127,9 @@ def is_admin_student(function):
 # decorator
 def is_tutor_student(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if is_User('Student') == 200 or is_User('Tutor') == 200:
-            return function()
+            return function(*args, **kwargs)
         else:
             return Response(
                 401,
@@ -142,9 +142,9 @@ def is_tutor_student(function):
 # decorator
 def is_student(function):
     @wraps(function)
-    def wrap():
+    def wrap(*args, **kwargs):
         if is_User('Student') == 200:
-            return function()
+            return function(*args, **kwargs)
         else:
             return Response(
                 401,
@@ -179,6 +179,15 @@ def is_acceptable_file(filename):
         return True
     else:
         return False
+
+
+def get_folder(mod_id):
+    folders = {
+        1: "Maths",
+        2: "English"
+    }
+
+    return folders[mod_id]
 
 
 class Response():

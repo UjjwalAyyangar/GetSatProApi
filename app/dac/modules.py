@@ -60,7 +60,6 @@ def get_progress(Module, stud_id):
 
 def get_tutor_module(tutor_id):
     try:
-        print("tut_id", tutor_id)
         return TutorModule.query.filter_by(Tutor_ID=tutor_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
         return None

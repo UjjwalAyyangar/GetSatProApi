@@ -14,6 +14,7 @@ from app.dac import users as users_dac
 from app.dac import exams as exams_dac
 from app.dac import flashcards as fc_dac
 from app.dac import discussions as disc_dac
+from app.dac import files as files_dac
 from app.dac import grades as grade_dac
 
 
@@ -44,7 +45,7 @@ def insert(field):
         db.session.commit()
         return field
     except sqlalchemy.exc.IntegrityError as e:
-        print (e)
+        print(e)
         return None
 
 
@@ -70,7 +71,8 @@ def get_model_obj(model_name):
         'Discussion': Discussion,
         'D_thread': DiscussionThread,
         'Flashcard': Flashcard,
-        'FlashcardSet': FlashcardSet
+        'FlashcardSet': FlashcardSet,
+        'File': File
     }
 
     return model[model_name]
@@ -91,6 +93,8 @@ def get_model_field(model_name, data):
         return fc_dac.get_flashcard(data)
     elif model_name == "Flashcard_pref":
         return fc_dac.get_fcpref(data)
+    elif model_name == "File":
+        return files_dac.get_file(data)
     else:
         return None
 

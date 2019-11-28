@@ -1,5 +1,5 @@
 from flask import Flask
-from config import Config
+from config import Config, FirebaseConfig
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from sqlalchemy.orm import sessionmaker
@@ -9,8 +9,7 @@ from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-
-# from firebase_admin import firestore, credentials, initialize_app
+import pyrebase
 
 app = Flask(__name__)
 # cors = CORS(app, resources={r"/foo": {"origins": "http://localhost:port"}})
@@ -23,9 +22,6 @@ app.config.from_object(Config)
 # resources={r"/foo": {"origins": "http://localhost:port"}}
 CORS(app, support_credentials=True)  # , resources={r"/get_students": {"origins": "http://localhost:3000"}})
 db = SQLAlchemy(app)
-# cred = credentials.Certificate('key.json')
-# firebase_app = initialize_app(cred)
-# firebase_db = firestore.client()
 
 migrate = Migrate(app, db)
 
@@ -33,6 +29,9 @@ flask_bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 login = LoginManager(app)
 
+firebase_config = FirebaseConfig()
+firebase = pyrebase.initialize_app(firebase_config.get_config())
+storage = firebase.storage()
 # Swagger(app)
 
 
