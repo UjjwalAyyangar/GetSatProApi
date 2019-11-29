@@ -1,1 +1,1 @@
-web: gunicorn main:app --log-level debug --timeout 90 --keep-alive 30 --worker-class gevent --spew
+web: gunicorn main:app --log-level debug --keep-alive 30 --worker-class gevent

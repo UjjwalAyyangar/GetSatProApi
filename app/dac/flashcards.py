@@ -72,7 +72,7 @@ def get_progress(data):
         total += 1
 
     prog = round((float(easy) / float(total)) * 100, 2)
-    
+
     return prog
 
 
