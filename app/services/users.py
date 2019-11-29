@@ -488,3 +488,63 @@ def api_get_students():
         return response, 200
     else:
         return ErrorResponse(404).content(), 404
+
+
+@mod.route('/get_tutors', methods=["GET", "POST"])
+@cross_origin(origins="*",
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@jwt_required
+@is_admin
+def api_get_tutors():
+    is_Post = request.method == "POST"
+    tutors = []
+    if not is_Post:
+        tutors = users_dac.get_tutors({})
+    else:
+        data = request.get_json()
+        if MODULE_ID in data:
+            tutors = users_dac.get_tutors(data)
+        else:
+            return ErrorResponse(400).content(), 400
+
+    tut_lis = []
+    for tutor in tutors:
+        user = users_dac.get_user(user_id=tutor.Tutor_ID)
+        temp = {
+            TUTOR_ID: tutor.Tutor_ID,
+            USERNAME: user.Username,
+            USER_FNAME: user.First_Name,
+            USER_LNAME: user.Last_Name,
+            MODULE_ID: tutor.Module_ID
+        }
+        tut_lis.append(temp)
+
+    res = Response(200, "Successfully fetched all the tutors").content()
+    res[TUTOR_LIST] = tut_lis
+
+    return res, 200
+
+
+@mod.route('/get_user', methods=["POST"])
+@cross_origin(origins="*",
+              headers=['Content- Type', 'Authorization'], supports_credentials=True)
+@jwt_required
+@authenticated
+def get_user():
+    data = request.get_json()
+    user = users_dac.get_user(user_id=data[USER_ID])
+    if not user:
+        return ErrorResponse(404).content(), 404
+
+    user_info = {
+        USER_ID: user.User_ID,
+        USER_FNAME: user.First_Name,
+        USER_FNAME: user.Last_Name,
+        USERNAME: user.Username
+    }
+
+    res = Response("Successfully fetched the user", 200).content()
+
+    res[USER_INFO] = user_info
+
+    return res, 200

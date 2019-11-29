@@ -63,6 +63,7 @@ def get_progress(data):
         FLASHCARD_SET_ID: data[FLASHCARD_SET_ID]
     }).all()
 
+
     total = 0
     easy = 0
     for pref_card in all_pref_cards:
@@ -71,6 +72,7 @@ def get_progress(data):
         total += 1
 
     prog = round((float(easy) / float(total)) * 100, 2)
+    
     return prog
 
 

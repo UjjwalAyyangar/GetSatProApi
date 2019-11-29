@@ -48,5 +48,12 @@ def create_user(data):
         Role_ID=int(data[ROLE_ID])
     )
 
-    #print(new_user)
+    # print(new_user)
     return gen_dac.insert(new_user)
+
+
+def get_tutors(data):
+    if MODULE_ID in data:
+        return TutorModule.query.filter_by(Module_ID=data[MODULE_ID]).all()
+    else:
+        return TutorModule.query.all()

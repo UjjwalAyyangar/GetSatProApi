@@ -35,6 +35,13 @@ def api_view_sets():
             FLASHCARD_SET_NAME: fc_set.Set_Name,
             MODULE_ID: fc_set.Module_ID,
         }
+
+        if is_User("Student") == 200:
+            temp[FLASHCARD_PROGRESS] = fc_dac.get_progress({
+                STUDENT_ID: current_user.User_ID,
+                FLASHCARD_SET_ID: fc_set.Set_ID
+            })
+
         set_arr.append(temp)
 
     res = Response(200, "Successfully fetched all the sets").content()
@@ -62,6 +69,7 @@ def api_view_set():
         return ErrorResponse(404).content(), 400
 
     first_card = fc_set.Flashcards.first()
+
     card_data = {
         FLASHCARD_SET_ID: first_card.Set_ID,
         FLASHCARD_QUESTION: first_card.Question,

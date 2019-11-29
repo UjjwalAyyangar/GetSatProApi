@@ -8,6 +8,8 @@ USER_ID = 'user_id'
 STUDENT_ID = 'user_id'
 TUTOR_ID = 'user_id'
 ADMIN_ID = 'user_id'
+TUTOR_LIST = "user_lis"
+USER_INFO = "user_info"
 
 # User Role
 ROLE_ID = "role_id"
