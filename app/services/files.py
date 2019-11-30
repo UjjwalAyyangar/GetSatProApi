@@ -20,11 +20,11 @@ from flask_cors import cross_origin
 mod = Blueprint('files', __name__, url_prefix='/api')
 
 
-@mod.route('/add_file/', methods=["POST"])
+@mod.route('/add_file/', methods=["GET", "POST"])
 @cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
-#@jwt_required
-#@is_admin_tutor
+# @jwt_required
+# @is_admin_tutor
 def add_file():
     if request.method == "GET":
         return '''
