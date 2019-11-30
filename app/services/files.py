@@ -23,9 +23,20 @@ mod = Blueprint('files', __name__, url_prefix='/api')
 @mod.route('/add_file/', methods=["POST"])
 @cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
-@jwt_required
-@is_admin_tutor
+#@jwt_required
+#@is_admin_tutor
 def add_file():
+    if request.method == "GET":
+        return '''
+                <!doctype html>
+                <title>Upload new File</title>
+                <h1>Upload new File</h1>
+                <form method=post enctype=multipart/form-data>
+                  <input type=file name=file>
+                  <input type=submit value=Upload>
+                </form>
+                '''
+
     if is_User("Admin") == 200:
         if MODULE_ID in request.form:
             mod_id = request.form['mod_id']
