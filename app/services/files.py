@@ -43,8 +43,9 @@ def add_file():
         else:
             return ErrorResponse(400).content(), 400
     else:
-        mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
+    # mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
 
+    mod_id = 2
     if 'file' not in request.files:
         return Response(
             "Please specify a file to be uploaded",
@@ -64,7 +65,7 @@ def add_file():
 
         data = {
             FILE_NAME: filename,
-            PUB_ID: current_user.User_ID,
+            PUB_ID: 4,  # ,current_user.User_ID,
             MODULE_ID: mod_id
         }
         folder = get_folder(mod_id)
