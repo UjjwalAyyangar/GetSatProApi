@@ -43,7 +43,7 @@ def add_file():
         else:
             return ErrorResponse(400).content(), 400
     else:
-    # mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
+        mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
 
     mod_id = 2
     if 'file' not in request.files:
