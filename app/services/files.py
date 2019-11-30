@@ -75,16 +75,16 @@ def add_file():
 
         storage.child(new_file_path).put(file)
         data[FILE_LINK] = storage.child(new_file_path).get_url(None)
-        new_file = files_dac.create_file(data)
+        # new_file = files_dac.create_file(data)
 
-        if not new_file:
-            return ErrorResponse(500).content(), 500
+        # if not new_file:
+        #    return ErrorResponse(500).content(), 500
 
         ret = Response(
             "File uploaded successfully",
             200
         ).content()
-        ret[FILE_ID] = new_file.File_ID
+        # ret[FILE_ID] = new_file.File_ID
         return ret, 200
     else:
         return ErrorResponse(404).content(), 404
