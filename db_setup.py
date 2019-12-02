@@ -154,7 +154,7 @@ db.session.commit()
 # Algebra exam
 
 # algebra exam questions
-"""
+
 algebra_ques_1 = {
     EXAM_ID: 1,
     QUESTION: "What is the value of a in, a + 5 = 7 ?",
@@ -206,8 +206,6 @@ geometry_data = {
 geo_exam = exams_dac.create_exam(geometry_data)
 db.session.add(geo_exam)
 db.session.commit()
-"""
-
 # English exams
 
 # Vocab1
