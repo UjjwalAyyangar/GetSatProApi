@@ -129,32 +129,6 @@ class Exam(db.Model):
     Reports = rel_obj.one_to_many('Exam', 'StudentReport')  # 1 exam will have many reports
 
 
-"""
-{
-  "exam": [
-    {
-      "correctAnswer": "Second Option",
-      "Question": "This is the first question",
-      "options": [
-        "First option",
-        "Second Option",
-        "Third Option"
-      ]
-    },
-    {
-      "correctAnswer": "First Option",
-      "Question": "This is the first question",
-      "options": [
-        "First option",
-        "Second Option",
-        "Third Option"
-      ]
-    }
-  ]
-}
-
-"""
-
 
 # Report
 class StudentReport(db.Model):
@@ -222,9 +196,6 @@ class DiscussionThread(db.Model):
     Time = Column(DateTime, default=datetime.now())
 
 
-# engine = create_engine('sqlite:///getSatPro.db')
-# Base.metadata.create_all(engine)
-# db.create_all()
 
 class File(db.Model):
     File_ID = Column(Integer, primary_key=True)

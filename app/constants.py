@@ -10,6 +10,7 @@ TUTOR_ID = 'user_id'
 ADMIN_ID = 'user_id'
 TUTOR_LIST = "user_lis"
 USER_INFO = "user_info"
+SECURITY_PWD = "sec_pwd"
 
 # User Role
 ROLE_ID = "role_id"

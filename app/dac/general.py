@@ -61,6 +61,101 @@ def delete(field):
         return False
 
 
+def delete_list(lis):
+    try:
+        for item in lis:
+            db.session.delete(item)
+            db.session.commit()
+    except:
+        return None
+
+
+def del_exist_util(field):
+    if not field:
+        return True
+    return False
+
+
+def delete_user(field):
+    try:
+
+        if field.Role_ID == 1:
+            user_id = field.User_ID
+
+            # delete fc_preference table of that user
+            fc_prefs = FC_Preference.query.filter_by(Student_ID=user_id).all()
+
+            if fc_prefs:
+                _ = delete_list(fc_prefs)
+
+            # delete UserAnswers
+            user_ans = UserAnswer.query.filter_by(Student_ID=user_id).all()
+            if user_ans:
+                _ = delete_list(user_ans)
+
+            # delete Student answer sheets
+            ans_sheets = StudentAnswerSheet.query.filter_by(Student_ID=user_id).all()
+            if ans_sheets:
+                _ = delete_list(ans_sheets)
+
+            # delete Student report
+            user_reports = StudentReport.query.filter_by(Student_ID=user_id).all()
+
+            if user_reports:
+                _ = delete_list(user_reports)
+
+            # delete discussion reply
+            del_threads = DiscussionThread.query.filter_by(User_ID=user_id).all()
+
+            if del_threads:
+                _ = delete_list(del_threads)
+
+            # delete discussion
+            del_discussions = Discussion.query.filter_by(User_ID=user_id).all()
+
+            if del_discussions:
+
+                # delete all replies from the user's discussion
+                for discussion in del_discussions:
+                    replies = discussion.Replies.all()
+                    if replies:
+                        _ = delete_list(replies)
+
+                # delete discussions
+                _ = delete_list(del_discussions)
+
+            return True
+
+        # delete tutor
+        else:
+            delete(field)
+
+
+    except:
+        return False
+
+
+def del_discussion(field):
+    try:
+        # replies
+        replies = field.Replies.all()
+        if replies:
+            _ = delete_list(replies)
+
+        # return discussion
+        return delete(field)
+    except:
+        return False
+
+
+def del_exam(field):
+    any_ans = StudentReport.query.filter_by(Exam_ID=field.Exam_ID).all()
+    if any_ans:
+        return False
+
+    return delete(field)
+
+
 def get_model_obj(model_name):
     """ A method that is used to return the model associated with the model_name
 
@@ -91,7 +186,7 @@ def get_model_field(model_name, data):
     if model_name == 'Module':
         return mod_dac.get_module(data)
     elif model_name == 'User':
-        return users_dac.get_user(data)
+        return users_dac.get_user(user_id=data)
     elif model_name == 'Discussion':
         return disc_dac.get_discussion(data)
     elif model_name == 'Exam':

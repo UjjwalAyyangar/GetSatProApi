@@ -78,10 +78,7 @@ def register():
     )
 
     # Make the user's preference table
-    if user.Role_ID == 1:
-        flashcards = Flashcard.query.all()
-        for card in flashcards:
-            new_fc_pref = fc_dac.fc_pref_init(card.FC_ID, user.User_ID)
+    users_dac.setup_pref(user)
 
     res = gen_dac.exists('User', user, res)
 
@@ -314,6 +311,9 @@ def get_user():
     :return: JSON object containing details of a user
     """
     data = request.get_json()
+    if is_User("Admin") == 200:
+        auth = users_dac.admin_auth(data)
+
     user = users_dac.get_user(user_id=data[USER_ID])
     if not user:
         return ErrorResponse(404).content(), 404
@@ -322,9 +322,13 @@ def get_user():
         # constructing the response json of a user
         USER_ID: user.User_ID,
         USER_FNAME: user.First_Name,
-        USER_FNAME: user.Last_Name,
+        USER_LNAME: user.Last_Name,
         USERNAME: user.Username
     }
+
+    if auth:
+        user_info[EMAIL] = user.Email
+        user_info[PHONE] = user.Phone
 
     res = Response("Successfully fetched the user", 200).content()
 

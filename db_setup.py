@@ -46,6 +46,7 @@ aarohi_data = {
 aarohi = users_dac.create_user(aarohi_data)
 db.session.add(aarohi)
 db.session.commit()
+users_dac.setup_pref(aarohi)
 
 nithin_data = {
     USERNAME: "nithin",
@@ -59,6 +60,7 @@ nithin_data = {
 nithin = users_dac.create_user(nithin_data)
 db.session.add(nithin)
 db.session.commit()
+users_dac.setup_pref(nithin)
 
 david_data = {
     USERNAME: "david",
@@ -72,6 +74,8 @@ david_data = {
 david = users_dac.create_user(david_data)
 db.session.add(david)
 db.session.commit()
+users_dac.setup_pref(david)
+
 # Tutors
 annu_data = {
     USERNAME: "annu",
@@ -107,8 +111,10 @@ ujjwal_data = {
     USER_PWD: "uAyyangar",
     EMAIL: "ayyangar@umd.edu",
     PHONE: "206-591-8216",
-    ROLE_ID: 3
+    ROLE_ID: 3,
+    SECURITY_PWD: "security"
 }
+
 ujjwal = users_dac.create_user(ujjwal_data)
 # db.session.add(ujjwal)
 # db.session.commit()
@@ -148,6 +154,7 @@ db.session.commit()
 # Algebra exam
 
 # algebra exam questions
+"""
 algebra_ques_1 = {
     EXAM_ID: 1,
     QUESTION: "What is the value of a in, a + 5 = 7 ?",
@@ -199,15 +206,21 @@ geometry_data = {
 geo_exam = exams_dac.create_exam(geometry_data)
 db.session.add(geo_exam)
 db.session.commit()
+"""
 
 # English exams
 
 # Vocab1
+
 vocab1_ques_1 = {
     EXAM_ID: 3,
-    QUESTION: "What is the meaning of callowness?",
-    QUESTION_ANS: "Immature",
-    QUESTION_OPTIONS: ["Immature", "Mature", "Easy-going", "Rude"],
+    QUESTION: "A certain bookstore sells only paperbacks and hardbacks."
+              "Each of the 200 paperbacks in stock sells for a price between $8"
+              "and $12, and each of the 100 hardbacks in stock sells for a price between $14"
+              "and $18. Quantity A : The average price of the books in stock at the bookstore."
+              "Quantity B: $9.99",
+    QUESTION_ANS: "Quantity A is greater",
+    QUESTION_OPTIONS: ["Quantity A is greater", "Quantity B is greater", "The two quantitities are equal", "The relationship cannot be determined from the given information"],
 }
 
 vocab1_ques_2 = {

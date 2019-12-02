@@ -5,8 +5,9 @@ from app.system import *
 import gcloud
 from app.dac import general as gen
 from app.constants import *
-from app import storage
+from app import storage, flask_bcrypt
 from app.dac import files as files_dac
+from app.dac import users as users_dac
 
 from flask_jwt_extended import (
     jwt_required
@@ -28,6 +29,12 @@ def api_del():
     data = request.get_json()
     model_id = data[MODEL_ID]
     model_name = data[MODEL_NAME]
+    if is_User("Admin") == 200:
+        auth = users_dac.admin_auth(data)
+        if not auth:
+            return Response(401, "Please enter the security password"), 401
+
+    sec_pwd = data[SECURITY_PWD]
 
     if is_User("Tutor") == 200 and not (model_name == "Exam" or model_name == "Discussion" or model_name == "File"):
         return Response(
@@ -35,11 +42,23 @@ def api_del():
             "Only an admin can delete this").content(), 401
 
     field = gen.get_model_field(model_name, model_id)
+    print("field is", field)
     if not field:
         return ErrorResponse(404).content(), 404
 
-    deleted = gen.delete(field)
+    if model_name == "User":
+        deleted = gen.delete_user(field)
+    elif model_name == "Discussion":
+        deleted = gen.del_discussion(field)
+    elif model_name == "Exam":
+        deleted = gen.del_exam(field)
+    else:
+        deleted = gen.delete(field)
+
     if not deleted:
+        if model_name == "Exam":
+            return Response(400, "Cannot delete this exam because a student has already taken it.").content(), 400
+
         return ErrorResponse(500).content(), 500
 
     if model_name == "File":
