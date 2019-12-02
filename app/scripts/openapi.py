@@ -29,6 +29,7 @@ def make_doc():
 
     with app.test_request_context():
         # User service
+        """
         spec.path(view=users.register)
         spec.path(view=users.login)
         spec.path(view=users.logout)
@@ -44,6 +45,7 @@ def make_doc():
         spec.path(view=grades.api_view_grades)
         spec.path(view=discussions.api_create_discussion)
         spec.path(view=discussions.api_create_discus_thread)
+        """
 
     jwt_scheme = {
         "type": "http",

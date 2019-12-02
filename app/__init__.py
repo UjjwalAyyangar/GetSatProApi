@@ -60,4 +60,4 @@ app.register_blueprint(files.mod)
 # from app import routes
 from app.scripts import openapi
 
-openapi.make_doc()
+# openapi.make_doc()
