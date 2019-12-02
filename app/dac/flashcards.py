@@ -61,9 +61,9 @@ def get_progress(data):
         FLASHCARD_SET_ID: data[FLASHCARD_SET_ID]
     }).all()
 
-
     total = 0
     easy = 0
+    print(all_pref_cards)
     for pref_card in all_pref_cards:
         if pref_card.Difficulty == 1:
             easy += 1
@@ -185,7 +185,6 @@ def get_next_flashcard(set_id, stud_id):
         return pref_cards[randint(0, len(pref_cards) - 1)]
     else:
         return rest_cards[randint(0, len(rest_cards) - 1)]
-
 
 
 def reset_flashcard_set(data):
