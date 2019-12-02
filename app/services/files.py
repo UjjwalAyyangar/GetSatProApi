@@ -23,8 +23,8 @@ mod = Blueprint('files', __name__, url_prefix='/api')
 @mod.route('/add_file/', methods=["GET", "POST"])
 @cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
-# @jwt_required
-# @is_admin_tutor
+@jwt_required
+@is_admin_tutor
 def add_file():
     if request.method == "GET":
         return '''
@@ -43,10 +43,9 @@ def add_file():
         else:
             return ErrorResponse(400).content(), 400
     else:
-        mod_id = 2
-        # mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
+        # mod_id = 2
+        mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
 
-    mod_id = 2
     if 'file' not in request.files:
         return Response(
             "Please specify a file to be uploaded",
@@ -66,7 +65,7 @@ def add_file():
 
         data = {
             FILE_NAME: filename,
-            PUB_ID: 2,  # current_user.User_ID,
+            PUB_ID: current_user.User_ID,
             MODULE_ID: mod_id
         }
         folder = get_folder(mod_id)
@@ -76,16 +75,16 @@ def add_file():
 
         storage.child(new_file_path).put(file)
         data[FILE_LINK] = storage.child(new_file_path).get_url(None)
-        # new_file = files_dac.create_file(data)
+        new_file = files_dac.create_file(data)
 
-        # if not new_file:
-        #     return ErrorResponse(500).content(), 500
+        if not new_file:
+            return ErrorResponse(500).content(), 500
 
         ret = Response(
             "File uploaded successfully",
             200
         ).content()
-        # ret[FILE_ID] = new_file.File_ID
+        ret[FILE_ID] = new_file.File_ID
         return ret, 200
     else:
         return ErrorResponse(404).content(), 404

@@ -23,20 +23,35 @@ mod = Blueprint('exams', __name__, url_prefix='/api')
 @jwt_required
 @authenticated
 def api_view_exam():
+    """
+    API endpoint for viewing  an exam
+
+    :return: A response JSON object containing details about an exam
+    """
+
+    # getting data from a client's request json object
     data = request.get_json()
     exam_id = data[EXAM_ID]
+
+    # getting the associated exam from the database
     exam = exams_dac.get_exam(exam_id)
+
+    # checking if the exam exists or not and sending appropriate response to the client
     if not exam:
         return ErrorResponse(404).content(), 404
 
+    # getting all the questions of the specified exam
     questions = exam.Questions.all()
     ques_list = []
+
+    # Checking if the current user is a student and if he/she has submitted the exam
     isStudent = is_User("Student") == 200
     if isStudent:
         submitted = exams_dac.check_sub_exam(exam_id, current_user.User_ID)
     else:
         submitted = False
 
+    # if the student has submitted, get his/her answer sheets
     if submitted:
         user_sheet = exams_dac.get_ans_sheet({
             EXAM_ID: exam_id,
@@ -47,6 +62,8 @@ def api_view_exam():
 
     total = 0
     correct = 0
+
+    # building response json for each question and adding them into a list
     for question in questions:
         total += 1
         options = [question.Option_1, question.Option_2, question.Option_3, question.Option_4]
@@ -80,6 +97,8 @@ def api_view_exam():
 
     res[QUESTIONS] = ques_list
     res[EXAM_NAME] = exam.Exam_Name
+
+    # returning the final json object
     return res, 200
 
 
@@ -89,144 +108,22 @@ def api_view_exam():
 @jwt_required
 @authenticated
 def api_get_exams():
-    """ End-point for getting list of Exams.
-       ---
-       description: List of Exams. [Jwt]
-       get:
-                description: Getting list of modules
-                responses:
-                    200:
-                        description: Successfully fetched exams
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: integer
-                                            example: 200
-                                        message:
-                                            type: string
-                                            example: Sucessfully fetched all the exams
-                                        mod_list:
-                                            type: array
-                                            items:
-                                                type: object
-                                                properties:
-                                                    exam_id:
-                                                        type: integer
-                                                        example: 1
-                                                        description: Id of the exam of the student
-                                                    exam_name:
-                                                        type: string
-                                                        example: Sample
-                                                        description: The name of the exam
-                                                    ques_no:
-                                                        type: integer
-                                                        example: 10
-                                                        description: Number of questions in an exam
-                                                    published:
-                                                        type: string
-                                                        example: 11/2/2019
-                                                        description: The date on which the exam was published
-                                                    mod_id:
-                                                        type: integer
-                                                        example: 23
-                                                        description: The id of the module to whom the exam belongs.
-       post:
-           description: List of Exams
-           requestBody:
-               description: List of exams
-               content:
-                   application/json:
-                       schema:
-                           type: object
-                           properties:
-                               mod_id:
-                                  type: integer
-                                  example: 324
-                                  description: OPTIONAL
-           responses:
-               200:
-                   description: Successfully fetched the list of students
-                   content:
-                       application/json:
-                           schema:
-                               type: object
-                               properties:
-                                   Status:
-                                       type: string
-                                       example: 200
-                                   message:
-                                       type: string
-                                       example: Successfully fetched the list of students
-                                   exams:
-                                       type: array
-                                       description: A list of exams
-                                       items:
-                                           type: object
-                                           description: Exam list
-                                           properties:
-                                               exam_id:
-                                                   type: integer
-                                                   example: 1
-                                                   description: Id of the exam of the student
-                                               exam_name:
-                                                   type: string
-                                                   example: Sample
-                                                   description: The name of the exam
-                                               ques_no:
-                                                   type: integer
-                                                   example: 10
-                                                   description: Number of questions in an exam
-                                               published:
-                                                   type: string
-                                                   example: 11/2/2019
-                                                   description: The date on which the exam was published
-                                               mod_id:
-                                                   type: integer
-                                                   example: 23
-                                                   description: The id of the module to whom the exam belongs.
-                                               completed:
-                                                   type: boolean
-                                                   example: true
-                                                   description: Only present for students
-               404:
-                   description: Exams not found
-                   content:
-                       application/json:
-                           schema:
-                               type: object
-                               properties:
-                                   Status:
-                                       type: string
-                                       example: 404
-                                   message:
-                                       type: string
-                                       example: Not found
-               401:
-                   description: Unauthorized request. Cannot be made without login
-                   content:
-                       application/json:
-                           schema:
-                               type: object
-                               properties:
-                                   Status:
-                                       type: string
-                                       example: 401
-                                   message:
-                                       type: string
-                                       example: Only Tutors and Students can make this request
-       """
+    """
+    API endpoint for getting the list of exams
+    :return: A JSON response object containing a list of exams with their details
+    """
 
     # POST - module_id - for students
     # GET - for tutor and students
 
     stud_id, tut_id, mod_id = (None, None, None)
+
+    # checking if the client has made a POST request or GET request
     is_POST = request.method == "POST"
     if is_POST:
         data = request.get_json()
 
+    # Setting the value of mod_id variable depending on the type of request made by the client
     if is_User('Tutor') == 200:
         if is_POST:
             return ErrorResponse(400).content(), 400
@@ -239,19 +136,22 @@ def api_get_exams():
             if MODULE_ID in data:
                 mod_id = data[MODULE_ID]
 
+    # getting a list of exams from the database
     if mod_id:
         Exams = exams_dac.get_exams(mod_id)
     else:
         Exams = exams_dac.get_exams()
 
     exam_list = []
-
     if not Exams:
         return ErrorResponse(404).content(), 404
 
+    # constructing response JSON for each exam
     for exam in Exams:
         question_no = len(exam.Questions.all())
         date = exam.Published.date()
+
+        # separating data objects into correct format
         day = date.day
         month = date.month
         year = date.year
@@ -264,7 +164,9 @@ def api_get_exams():
             PUBLISHED: date_str,
         }
 
+        # checking if the user is a student or not
         if stud_id:
+            # checking if the student has already submitted this exam
             completed = exams_dac.check_sub_exam(exam.Exam_ID, stud_id)
             temp[COMPLETED] = completed
 
@@ -273,6 +175,7 @@ def api_get_exams():
 
         exam_list.append(temp)
 
+    # creating a response json object
     res = Response(
         200,
         "Fetched exams successfully"
@@ -283,6 +186,7 @@ def api_get_exams():
     if mod_id:
         ret[MODULE_ID] = mod_id
 
+    # returning the final response json object
     return ret, 200
 
 
@@ -290,83 +194,13 @@ def api_get_exams():
 @cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
-@is_student  # this ensures authentication check
+@is_student  # Ensures that only a use of type "Student" can use this endpoint
 def api_submit_exam():
-    """ End-point for submitting exams.
-            ---
-            description: Exam Submission
-            post:
-                description: Exam Submission
-                requestBody:
-                    description : Request body
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                required:
-                                    - exam_id
-                                    - sub
-                                properties:
-                                    exam_id:
-                                        type: integer
-                                        description: ID of the exam which you want to submit
-                                        example: 1
-                                    sub:
-                                        type: array
-                                        description: An array of Questions and Answers
-                                        items:
-                                            type: object
-                                            properties:
-                                                ques_id:
-                                                    type: integer
-                                                    description: ID of a question
-                                                    example: 1
-                                                ans:
-                                                    type: integer
-                                                    description: The answer option of a question
-                                                    example: 1
+    """
+    API endpoint for submitting exams
 
-                responses:
-                    200:
-                        description: Successful submission
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 200
-                                        message:
-                                            type: string
-                                            example: Exam submitted successfully
-                    401:
-                        description: Only a student can make this request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 401
-                                        message:
-                                            type: string
-                                            example: Only a student user can submit an exam.
-                    400:
-                        description: Already submitted
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 400
-                                        message:
-                                            type: string
-                                            example: The exam is already submitted.
-            """
+    :return: A JSON response object containing details of the currently submitted exam
+    """
 
     data = request.get_json()
     student_id = current_user.User_ID
@@ -420,6 +254,7 @@ def api_submit_exam():
                 "Unable to create new answers"
             ).content(), 500
 
+    # creating student's answer report
     new_report = grades_dac.create_report({
         STUDENT_ID: student_id,
         EXAM_ID: exam_id,
@@ -434,6 +269,7 @@ def api_submit_exam():
             "Unable to create new report"
         ).content(), 500
 
+    # returning the response json object
     return Response(
         200,
         "Exam submitted successfully"
@@ -446,85 +282,21 @@ def api_submit_exam():
 @jwt_required
 @is_admin_tutor  # checks for authentication also
 def api_create_exam():
-    """ End-point for creating exams.
-        ---
-        description: Exam creation
-        post:
-            description: Exam creation
-            requestBody:
-                description : Request body
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            required:
-                                - mod_id
-                                - exam_name
-                                - exam
-                            properties:
-                                mod_id:
-                                    type: integer
-                                    description: Module ID (IF ADMIN)
-                                    example: 1
-                                exam_name:
-                                    type: string
-                                    description: Name of the exam
-                                    example: Midterm
-                                questions:
-                                    type: array
-                                    description : An array of questions
-                                    items:
-                                        type: object
-                                        properties:
-                                            question:
-                                                type: string
-                                                description: The question
-                                                example : Who is Obi Wan?
-                                                required: true
-                                            correct_ans:
-                                                type: string
-                                                description: Correct answer of the question
-                                                example: 2
-                                            options:
-                                                type: array
-                                                description: Options of the question
-                                                items:
-                                                    type: string
-                                                example: [A Jedi,A Sith,Ujjwal's student]
-            responses:
-                200:
-                    description: Successful creation of exam
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 200
-                                    message:
-                                        type: string
-                                        example: Exam created successfully
-                401:
-                    description: Unauthorized request
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 401
-                                    message:
-                                        type: string
-                                        example: Only Admins or Tutors can make this request.
-        """
+    """
+    API endpoint for creating exams
+
+    :return: A JSON response object that tells if exam creation was successful or not.
+    """
     # mod_id for admin
 
+    # getting data from request data object sent by the client
     data = request.get_json()
 
     user_id = current_user.User_ID
+
+    # checking if the user is tutor, because in that case a module_id is not required
     if is_User("Tutor") == 200:
+        # getting module id of the tutor from tutor_module table
         mod_id = mod_dac.get_tutor_module(user_id)
         if not mod_id:
             return ErrorResponse(404).content(), 404
@@ -532,6 +304,7 @@ def api_create_exam():
         mod_id = mod_id.Module_ID
         data[MODULE_ID] = mod_id
 
+    # creating a new exam
     exam = exams_dac.create_exam(data)
     if not exam:
         return ErrorResponse(500).content(), 500
@@ -543,6 +316,8 @@ def api_create_exam():
     res = gen_dac.exists('Exam', exam, res)
     res = res.content()
     res[EXAM_ID] = exam.Exam_ID
+
+    # returning the JSON response to client
     return res, 200
 
 
@@ -552,76 +327,10 @@ def api_create_exam():
 @jwt_required
 @authenticated
 def api_check_sub():
-    """ End-point for checking if an exam has been submitted by the student
-            ---
-            description: Check exam submission
-            post:
-                description: Check exam submission
-                requestBody:
-                    description : Request body
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                required:
-                                    - exam_id
-                                    - student_id
-                                properties:
-                                    exam_id:
-                                        type: integer
-                                        description: ID of the exam whose grade you want to see
-                                        example: 1
-                                        required: true
-                                    student_id:
-                                        type: integer
-                                        description: ID of the student whose submission you want to check
-                                        example: 45
-                                        required: false
+    """
 
-                responses:
-                    200:
-                        description: Successful display
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 200
-                                        message:
-                                            type: integer
-                                            example: Fetched exam successfully or Exam not submitted
-                                        submitted:
-                                            type: string
-                                            example: True or False
-
-                    400:
-                        description: Bad Request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 400
-                                        message:
-                                            type: string
-                    401:
-                        description: Unauthorized request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 401
-                                        message:
-                                            type: string
-                                            example: Unauthorized request
-            """
+    :return:
+    """
 
     data = request.get_json()
     stud_id = data.get(STUDENT_ID)

@@ -24,96 +24,40 @@ mod = Blueprint('discussions', __name__, url_prefix='/api')
 @jwt_required
 @authenticated
 def api_create_discussion():
-    """ End-point for creating a new discussion
-                ---
-                description: Create Discussion
-                post:
-                    description: Create Discussion
-                    requestBody:
-                        description : Request body
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    required:
-                                        - title
-                                        - content
-                                        - mod_id
-                                    properties:
-                                        title:
-                                            type: string
-                                            description: Title of the main discussion
-                                            example: Doubt in Algebra
-                                        content:
-                                            type: string
-                                            description: Content of the main discussion
-                                            example: How to derive (x+y)^2 ?
-                                        mod_id:
-                                            type: integer
-                                            description: ID of the module where the discussion has to be created
-                                            example: 3
-                    responses:
-                        200:
-                            description: Successfully created a new discussion
-                            content:
-                                application/json:
-                                    schema:
-                                        type: object
-                                        properties:
-                                            Status:
-                                                type: string
-                                                example: 200
-                                            message:
-                                                type: string
-                                                example: New discussion created successfully
-                        401:
-                            description: Need to be logged in to make this request
-                            content:
-                                application/json:
-                                    schema:
-                                        type: object
-                                        properties:
-                                            Status:
-                                                type: string
-                                                example: 401
-                                            message:
-                                                type: string
-                                                example: Unauthorized request.
-                        400:
-                            content:
-                                application/json:
-                                    schema:
-                                        type: object
-                                        properties:
-                                            Status:
-                                                type: string
-                                                example: 400
-                                            message:
-                                                type: string
-                                                example: Bad Request
-                """
+    """
+    API endpoint for creating a discussion
 
+    :return: Json response object
+    """
+
+    # getting the request json data sent by the client
     data = request.get_json()
+
+    # checking if the user is a tutor, because tutor's don't need to provide module ids
     if is_User("Tutor") == 200:
         mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
         data[MODULE_ID] = mod_id
 
+    # getting user id from the current user session
     data[USER_ID] = current_user.User_ID
 
     new_discus = disc_dac.create_discussion(data)
 
     try:
+        # creating a response object
         res = Response(
             200,
             "Discussion created successfully"
         )
 
+        # checking if the newly created discussion already exists and adjusting the response object accordingly
         res = gen_dac.exists('Discussion', new_discus, res)
         ret = res.content()
         ret[DISCUSS_ID] = new_discus.Discussion_ID
 
         return ret, 200
     except:
+        # Return a bad response error
         res = ErrorResponse(400)
         return res.content(), 400
 
@@ -124,93 +68,28 @@ def api_create_discussion():
 @jwt_required
 @authenticated
 def api_create_discus_thread():
-    """ End-point for creating a new discussion reply
-                    ---
-                    description: Create Reply/Thread
-                    post:
-                        description: Create Reply/Thread
-                        requestBody:
-                            description : Request body
-                            content:
-                                application/json:
-                                    schema:
-                                        type: object
-                                        required:
-                                            - discuss_id
-                                            - content
-                                        properties:
-                                            discuss_id:
-                                                type: integer
-                                                description: ID of the discussion where you want to reply
-                                                example: 3
-                                            content:
-                                                type: string
-                                                description: Content of the reply
-                                                example: Make a square and divide it.
-                        responses:
-                            200:
-                                description: Successfully replied to the discussion
-                                content:
-                                    application/json:
-                                        schema:
-                                            type: object
-                                            properties:
-                                                Status:
-                                                    type: string
-                                                    example: 200
-                                                message:
-                                                    type: string
-                                                    example: New discussion reply created.
-                            401:
-                                description: Need to be logged in to make this request
-                                content:
-                                    application/json:
-                                        schema:
-                                            type: object
-                                            properties:
-                                                Status:
-                                                    type: string
-                                                    example: 401
-                                                message:
-                                                    type: string
-                                                    example: Unauthorized request.
-                            400:
-                                content:
-                                    application/json:
-                                        schema:
-                                            type: object
-                                            properties:
-                                                Status:
-                                                    type: string
-                                                    example: 400
-                                                message:
-                                                    type: string
-                                                    example: Bad Request
-                            404:
-                                description: The main discussion associated with the given discuss_id was not found
-                                content:
-                                    application/json:
-                                        schema:
-                                            type: object
-                                            properties:
-                                                Status:
-                                                    type: string
-                                                    example: 404
-                                                message:
-                                                    type: string
-                                                    example: Not found.
-                    """
+    """
+    Api endpoint for creating a discussion thread/reply
 
+    :return: Json response object
+    """
+
+    # getting the request json data sent by the client
     data = request.get_json()
+
+    # checking if the user is a tutor, because tutors don't need to provide module ids
     if is_User("Tutor") == 200:
         mod_id = mod_dac.get_tutor_module(current_user.User_ID).Module_ID
         data[MODULE_ID] = mod_id
 
+    # getting current user id from the session
     data["user_id"] = current_user.User_ID
 
+    # checking if the reply already exists or not
     if not disc_dac.disc_exists(data[DISCUSS_ID]):
         return ErrorResponse(404).content(), 404
 
+    # creating a new reply object and updating the DB
     new_dthread = disc_dac.create_discus_thread(data)
     try:
         res = Response(
@@ -222,6 +101,7 @@ def api_create_discus_thread():
 
         return res.content(), res.code
     except:
+        # returning a bad request error
         return ErrorResponse(400).content(), 400
 
 
@@ -231,14 +111,26 @@ def api_create_discus_thread():
 @jwt_required
 @authenticated
 def api_view_discussion():
+    """
+    API endpoint for viewing a discussion
+
+    :return: JSON response object
+    """
+
+    # getting request json data from the client
+
     data = request.get_json()
+
+    # getting the discussion object from our Database (ORM)
     discuss = disc_dac.get_discussion(data)
 
     if discuss:
         reply_list = []
+        # getting all the replies associated with the discussion object
         replies = discuss.Replies.all()
 
         for reply in replies:
+            # constructing response json for each reply
             reply_user = users_dac.get_user(user_id=reply.User_ID)
             temp = {
                 REPLY_ID: reply.Thread_ID,
@@ -251,6 +143,7 @@ def api_view_discussion():
             }
             reply_list.append(temp)
 
+        # constructing a response json
         res = Response(
             200,
             "Fetched discussion successfully"
@@ -259,6 +152,8 @@ def api_view_discussion():
         author = users_dac.get_user(user_id=discuss.User_ID)
         ret["replies"] = reply_list
         ret["discuss_id"] = data["discuss_id"]
+
+        # Adding information about the discussion to the response json
         ret[DISCUSS_CONTENT] = discuss.Main_Discussion
         ret[DISCUSS_TITLE] = discuss.Discussion_Title
         ret[USER_ID] = discuss.User_ID
@@ -280,8 +175,17 @@ def api_view_discussion():
 @jwt_required
 @authenticated
 def get_discussions():
+    """
+    API endpoint for viewing all the available discussions
+
+    :return: JSON response object
+    """
+
+    # checking if the request moethod is POST or GET
     is_POST = request.method == "POST"
+
     if is_POST:
+        # getting request json data from the client
         data = request.get_json()
     else:
         data = {}
@@ -292,10 +196,12 @@ def get_discussions():
 
         return ErrorResponse(400).content(), 400
 
+    # getting a list of discussions as per the requirements specified by the client in the request json
     discs = disc_dac.get_discussions(data)
 
     disc_list = []
     for disc in discs:
+        # constructing json response structure for each discussion
         temp = {
             DISCUSS_TITLE: disc.Discussion_Title,
             DISCUSS_POSTED: disc.Time,
