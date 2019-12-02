@@ -1,7 +1,5 @@
-# The data access layer
+# DATA ACCESS LAYER - GENERAL
 
-# Some of these methods could have been written in models
-# but I wanted these separate. For better code organization.
 from app.models import *
 from app import db, flask_bcrypt
 import sqlalchemy
@@ -20,7 +18,7 @@ from app.dac import grades as grade_dac
 
 def exists(name, obj, res):
     """
-    :param name: The name of the object - Discussion, Module, User, etc
+    :param name: string:  The name of the object - Discussion, Module, User, etc
     :param obj: The object
     :param res: Our response object, which will return the final API response
     :return: The response object
@@ -34,7 +32,7 @@ def exists(name, obj, res):
 
 
 def insert(field):
-    """
+    """ A method that is used to insert a field into it's relevant database model/table
 
     :param field: the object of the field that needs to be inserted
 
@@ -45,12 +43,12 @@ def insert(field):
         db.session.commit()
         return field
     except sqlalchemy.exc.IntegrityError as e:
-        print(e)
+        # returns none of there was trouble inserting the field
         return None
 
 
 def delete(field):
-    """
+    """ A method that is used to delete a field from it's respective model/table
 
     :param field: the object of the field that needs to be deleted
     :return: True if deletion was successful, False otherwise
@@ -64,6 +62,11 @@ def delete(field):
 
 
 def get_model_obj(model_name):
+    """ A method that is used to return the model associated with the model_name
+
+    :param model_name: string:  name of the model whose object you want
+    :return: model object
+    """
     model = {
         'Module': Module,
         'UserInfo': UserInfo,
@@ -79,6 +82,12 @@ def get_model_obj(model_name):
 
 
 def get_model_field(model_name, data):
+    """ A method that is used to get a field from a specific model
+
+    :param model_name: string: name of the module whose field you want
+    :param data: dict: a dictionary containing details about the module whose field we want
+    :return: respective module field, if found. None otherwise
+    """
     if model_name == 'Module':
         return mod_dac.get_module(data)
     elif model_name == 'User':
@@ -100,14 +109,37 @@ def get_model_field(model_name, data):
 
 
 def get_progress(Module, stud_id):
+    """ A method that is used to find the a student's progress in a module
+
+    :param Module: Object of the module whose progress you want
+    :param stud_id: user_id of the student
+    :return:
+    """
     exams = Module.Exams.all()
     total = len(exams)
     taken = 0
+    # finding progress in the module's exams
     for exam in exams:
+        # checking if the student has submitted the exam
         if exams_dac.check_sub_exam(exam.Exam_ID, stud_id):
             taken += 1
 
+    # finding progress in the module's flashcards
+    sets = FlashcardSet.query.filter_by(Module_ID=Module.Module_ID).all()
+    flash_prog = 0.0
+    for flash_set in sets:
+        prog = fc_dac.get_progress({
+            STUDENT_ID: stud_id,
+            FLASHCARD_SET_ID: flash_set.Set_ID
+        })
+        flash_prog += prog
+
+    flash_prog = float(flash_prog) / len(sets)
+
+    # calculating the total progress
     if total != 0:
-        return (float(taken) / float(total)) * 100
+        exam_prog = (float(taken) / float(total)) * 100
+        total_prog = (exam_prog + flash_prog) / float(2)
+        return round(total_prog, 2)
     else:
-        return 0.0
+        return round(flash_prog, 2)

@@ -1,7 +1,5 @@
-# The data access layer
+# DATA ACCESS LAYER - USERS
 
-# Some of these methods could have been written in models
-# but I wanted these separate. For better code organization.
 from app.models import *
 from app import db, flask_bcrypt
 import sqlalchemy

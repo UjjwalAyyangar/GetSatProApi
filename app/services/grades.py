@@ -23,79 +23,14 @@ mod = Blueprint('grades', __name__, url_prefix='/api')
 @jwt_required
 @authenticated
 def api_view_grade():
-    """ End-point for viewing the grade of an exam.
-        ---
-        description: Viewing grade
-        post:
-            description: Viewing grade
-            requestBody:
-                description : Request body
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            required:
-                                - exam_id
-                            properties:
-                                exam_id:
-                                    type: integer
-                                    description: ID of the exam whose grade you want to see
-                                    example: 1
-                                stud_id:
-                                    type: integer
-                                    description: ID of the student whose grade you want to see
-                                    example: 434
-                                    required: false
-            responses:
-                200:
-                    description: Successful display
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 200
-                                    message:
-                                        type: integer
-                                        example: Grade displayed successfully
-                                    grade:
-                                        type: string
-                                        example: 100.0
-                                    exam_name:
-                                        type: string
-                                        example: Midterm
-                400:
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 400
-                                    message:
-                                        type: string
-                401:
-                    description: Unauthorized request
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    Status:
-                                        type: string
-                                        example: 401
-                                    message:
-                                        type: string
-                                        example: Unauthorized request
-        """
+    """ API endpoint to view grades
+
+    :return: JSON response object containing the details of an exam's grade
+    """
 
     data = request.get_json()
     exam_id = data[EXAM_ID]
-    # print(is_User("Student"), current_user.UserRole.User_Type)
+
     if is_User("Student") == 200:
         stud_id = current_user.User_ID
     else:
@@ -133,91 +68,15 @@ def api_view_grade():
 @jwt_required
 @authenticated
 def api_view_grades():
-    """ End-point for viewing the grade of an exam.
-            ---
-            description: Viewing all grades
-            post:
-                description: Viewing grades
-                requestBody:
-                    description : Request body
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    mod_id:
-                                        type: integer
-                                        description: ID of the module, the grades of whose exam you want to see
-                                        example: 1
-                                        required: false
-                                    stud_id:
-                                        type: integer
-                                        description: ID of the student whose grade you want to see. You'll need to enter it if you are not a student.
-                                        example: 434
-                                        required: false
-                responses:
-                    200:
-                        description: Successful display
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 200
-                                        message:
-                                            type: integer
-                                            example: Grade displayed successfully
-                                        exams:
-                                            type: array
-                                            items:
-                                                type: object
-                                                properties:
-                                                    exam_id:
-                                                        type: integer
-                                                        example: 3
-                                                    exam_name:
-                                                        type: string
-                                                        example: Sample
-                                                    grade:
-                                                        type: string
-                                                        example: 45.5
-                                                    mod_id:
-                                                        type: integer
-                                                        example: 4
-                    400:
-                        description: Bad Request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 400
-                                        message:
-                                            type: string
-                                            example: Bad Request
-                    401:
-                        description: Unauthorized request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 401
-                                        message:
-                                            type: string
-                                            example: Unauthorized request
-            """
+    """ API endpoint for getting the grades of a student in a module/ whole system
+
+    :return: response JSON containing details about the grades of a student.
+    """
 
     data = request.get_json()
 
     module_id = data.get(MODULE_ID)
-    # print(is_User("Student"), current_user.UserRole.User_Type)
+
     if is_User("Student") == 200:
         stud_id = current_user.User_ID
     else:
@@ -227,9 +86,12 @@ def api_view_grades():
             res = ErrorResponse(400)
             return res.content(), 400
 
+    # checking if module id is specified by the client in the request object
     if module_id:
+        # fetching exams from the db of the specified module
         exams = exam_dac.get_exams(module_id)
     else:
+        # fetching all exams from the db
         exams = exam_dac.get_exams()
 
     exam_list = []
@@ -238,7 +100,9 @@ def api_view_grades():
         if not exam_dac.check_sub_exam(exam_id, stud_id):
             continue
 
+        # getting a student's report in an exam
         report = grade_dac.get_report(stud_id, exam_id)
+        # constructing response report json
         t_report = {
             EXAM_ID: exam_id,
             EXAM_NAME: exam.Exam_Name,
@@ -255,4 +119,5 @@ def api_view_grades():
 
     res["exams"] = exam_list
 
+    # returning constructed json response to the client
     return res, 200

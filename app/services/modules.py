@@ -23,57 +23,16 @@ mod = Blueprint('modules', __name__, url_prefix='/api')
 @jwt_required
 @is_admin  # checks authentication automatically
 def api_add_module():
-    """ End-point for adding new modules.
-            ---
-            description: Add module
-            post:
-                description: Adding a new module
-                requestBody:
-                    description : Request body
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                required:
-                                    - mod_name
-                                properties:
-                                    mod_name:
-                                        type: string
-                                        description: The name of the module that needs to be added
-                                        example: maths
-                responses:
-                    200:
-                        description: Successful creation of a new module
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 200
-                                        message:
-                                            type: string
-                                            example: Module added in successfully
-                    401:
-                        description: Bad request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 401
-                                        message:
-                                            type: string
-                                            example: Only an admin is allowed to add modules.
-            """
+    """ API endpoint which is used to add a new module to the system
+
+    :return: JSON response indicated whether a new module was added successfully or not.
+    """
 
     data = request.get_json()
     if data is None:
         abort(404)
 
+    # returning apt. response to the client
     try:
         module = mod_dac.create_module(data)
         res = Response(
@@ -81,12 +40,11 @@ def api_add_module():
             "Module added successfully"
         )
 
+        # checking if the module exists already
         res = gen_dac.exists('Module', module, res)
-
         return res.content(), res.code
 
     except Exception as e:
-        # print(e)
         res = ErrorResponse(400)
         return res.content(), 400
 
@@ -97,147 +55,16 @@ def api_add_module():
 @jwt_required
 @is_admin_student
 def api_get_mods():
-    """ End-point for adding listing modules.
-            ---
-            description: Get modules
-            get:
-                description: Getting list of modules
-                responses:
-                    200:
-                        description: Successfully fetched modules
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: integer
-                                            example: 200
-                                        message:
-                                            type: string
-                                            example: Sucessfully fetched all the modules
-                                        mod_list:
-                                            type: array
-                                            items:
-                                                type: object
-                                                properties:
-                                                    mod_id:
-                                                        type: integer
-                                                        description : Module id
-                                                        example: 34
-                                                    mod_name:
-                                                        type: string
-                                                        description: the name of the Module
-                                                        example: Maths
-                                                    progress:
-                                                        type: flaot
-                                                        description: The progress of the student in the module
-                                                        example: 20.0
-                    400:
-                        description: Bad request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 400
-                                        message:
-                                            type: string
-                                            example: Bad request
-                    401:
-                        description: Unauthorized request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 401
-                                        message:
-                                            type: string
-                                            example: Only admins and students are allowed to make this request.
-            post:
-                description: Getting list of modules
-                requestBody:
-                    description : Request body
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    stud_id:
-                                        type: integer
-                                        description: The id of the student whose modules you want to see
-                                        example: 34
-                responses:
-                    200:
-                        description: Successfully fetched modules
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: integer
-                                            example: 200
-                                        message:
-                                            type: string
-                                            example: Sucessfully fetched all the modules
-                                        mod_list:
-                                            type: array
-                                            description: Won't see progress unless stud_id is provided
-                                            items:
-                                                type: object
-                                                properties:
-                                                    mod_id:
-                                                        type: integer
-                                                        description : Module id
-                                                        example: 34
-                                                    mod_name:
-                                                        type: string
-                                                        description: the name of the Module
-                                                        example: Maths
-                                                    progress:
-                                                        type: flaot
-                                                        description: The progress of the student in the module
-                                                        example: 20.0
-                    400:
-                        description: Bad request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 400
-                                        message:
-                                            type: string
-                                            example: Bad request
-                    401:
-                        description: Unauthorized request
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        Status:
-                                            type: string
-                                            example: 401
-                                        message:
-                                            type: string
-                                            example: Only admins and students are allowed to make this request.
-            """
+    """ API endpoint for getting a list of modules available in the system
 
-    # all are enrolled in all
+    :return: response JSON containing details about the list of modules
+    """
 
+    # checking the client request method type
     is_Post = request.method == "POST"
     student = is_User("Student") == 200
     admin = is_User("Admin") == 200
-    prog = False
+    prog = False  # becomes true if the user is a student
 
     if is_Post:
         data = request.get_json()
@@ -254,17 +81,20 @@ def api_get_mods():
         stud_id = current_user.User_ID
         prog = True
 
+    # fetching all the modules from the database
     modules = mod_dac.get_modules()
     if not modules:
         return Response(404, "No modules found").content(404), 404
 
     mod_list = []
     for module in modules:
+        # constructing json response for each module
         temp = {
             MODULE_ID: module.Module_ID,
             MODULE_NAME: module.Module_Name
         }
         if prog:
+            # getting a student's progress from a  module and adding it to response
             progress = gen_dac.get_progress(module, stud_id)
             temp[PROGRESS] = progress
 
@@ -276,4 +106,5 @@ def api_get_mods():
     ).content()
 
     res[MODULE_LIST] = mod_list
+    # returning the final json response object to the client
     return res, 200

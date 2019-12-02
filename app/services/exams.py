@@ -23,8 +23,7 @@ mod = Blueprint('exams', __name__, url_prefix='/api')
 @jwt_required
 @authenticated
 def api_view_exam():
-    """
-    API endpoint for viewing  an exam
+    """ API endpoint for viewing  an exam
 
     :return: A response JSON object containing details about an exam
     """
@@ -108,8 +107,8 @@ def api_view_exam():
 @jwt_required
 @authenticated
 def api_get_exams():
-    """
-    API endpoint for getting the list of exams
+    """ API endpoint for getting the list of exams
+
     :return: A JSON response object containing a list of exams with their details
     """
 
@@ -196,8 +195,7 @@ def api_get_exams():
 @jwt_required
 @is_student  # Ensures that only a use of type "Student" can use this endpoint
 def api_submit_exam():
-    """
-    API endpoint for submitting exams
+    """ API endpoint for submitting exams
 
     :return: A JSON response object containing details of the currently submitted exam
     """
@@ -282,8 +280,7 @@ def api_submit_exam():
 @jwt_required
 @is_admin_tutor  # checks for authentication also
 def api_create_exam():
-    """
-    API endpoint for creating exams
+    """ API endpoint for creating exams
 
     :return: A JSON response object that tells if exam creation was successful or not.
     """
@@ -327,9 +324,9 @@ def api_create_exam():
 @jwt_required
 @authenticated
 def api_check_sub():
-    """
+    """ API endpoint for checking if an exam is submitted or not
 
-    :return:
+    :return: A JSON response object containing details about an exam's submission
     """
 
     data = request.get_json()
@@ -337,6 +334,7 @@ def api_check_sub():
     if not stud_id:
         stud_id = current_user.User_ID
 
+    # fetching exam from the database
     exam = exams_dac.get_exam(data[EXAM_ID])
     if not exam:
         return Response(
@@ -344,6 +342,8 @@ def api_check_sub():
             "Exam does not exists"
         ).content(), 400
     res = Response(200, "").content()
+
+    # checking if the exam is submitted, and constructing apt. json response
     if exams_dac.check_sub_exam(data[EXAM_ID], stud_id):
         res["message"] = "Fetched exam successfully"
         res["submitted"] = "True"
@@ -351,4 +351,5 @@ def api_check_sub():
         res["message"] = "Exam not submitted"
         res["submitted"] = "False"
 
+    # returning the response json
     return res, 200

@@ -1,7 +1,5 @@
-# The data access layer
+# DATA ACCESS LAYER - FLASHCARDS
 
-# Some of these methods could have been written in models
-# but I wanted these separate. For better code organization.
 from app.models import *
 from app import db, flask_bcrypt
 import sqlalchemy
@@ -187,13 +185,7 @@ def get_next_flashcard(set_id, stud_id):
         return pref_cards[randint(0, len(pref_cards) - 1)]
     else:
         return rest_cards[randint(0, len(rest_cards) - 1)]
-    """
 
-    print(cards)
-    print(1 / 0)
-    card = cards[randint(0, len(cards) - 1)]
-    return card
-    """
 
 
 def reset_flashcard_set(data):
@@ -205,5 +197,4 @@ def reset_flashcard_set(data):
 
         return True
     except Exception as e:
-        print(e)
         return False

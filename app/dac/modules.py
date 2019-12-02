@@ -1,7 +1,5 @@
-# The data access layer
+# DATA ACCESS LAYER - MODULES
 
-# Some of these methods could have been written in models
-# but I wanted these separate. For better code organization.
 from app.models import *
 from app import db, flask_bcrypt
 import sqlalchemy
@@ -13,7 +11,7 @@ from app.dac import exams as exam_dac
 
 
 def get_module(mod_id):
-    """
+    """ A method that is used to query the database and return the module
 
     :param mod_id: the id of the module you want to get
     :return: None if the modules does not exist, a Module model object otherwise
@@ -25,6 +23,10 @@ def get_module(mod_id):
 
 
 def get_modules():
+    """ A method that is used to query the database and return list of modules in the system.
+
+    :return: List of Module model object
+    """
     try:
         return Module.query.all()
     except sqlalchemy.orm.exc.NoResultFound:
@@ -45,6 +47,12 @@ def create_module(data):
 
 
 def get_progress(Module, stud_id):
+    """ Used to get the method from a module.
+
+    :param Module:
+    :param stud_id:
+    :return:
+    """
     exams = Module.Exams.all()
     total = len(exams)
     taken = 0
