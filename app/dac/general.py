@@ -136,6 +136,7 @@ def get_progress(Module, stud_id):
 
     flash_prog = float(flash_prog) / len(sets)
 
+
     # calculating the total progress
     if total != 0:
         exam_prog = (float(taken) / float(total)) * 100
