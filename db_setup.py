@@ -140,6 +140,7 @@ assign_annu = mod_dac.assign_tutor_module(4, 2)
 db.session.add(assign_annu)
 db.session.commit()
 
+"""
 # Creating Exams. 2 in English. 2 in Maths
 
 # Math Exams
@@ -311,3 +312,4 @@ reply_data = {
 new_reply = discuss_dac.create_discus_thread(reply_data)
 db.session.add(new_reply)
 db.session.commit()
+"""
