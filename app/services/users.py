@@ -304,7 +304,7 @@ def api_get_tutors():
 @cross_origin(origins="*",
               headers=['Content- Type', 'Authorization'], supports_credentials=True)
 @jwt_required
-@authenticated
+@is_admin
 def get_user():
     """ API endpoint for getting the general details of a user
 
@@ -313,6 +313,8 @@ def get_user():
     data = request.get_json()
     if is_User("Admin") == 200:
         auth = users_dac.admin_auth(data)
+        if not auth:
+            return {}, 401
 
     user = users_dac.get_user(user_id=data[USER_ID])
     if not user:

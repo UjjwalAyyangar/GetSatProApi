@@ -34,8 +34,6 @@ def api_del():
         if not auth:
             return Response(401, "Please enter the security password"), 401
 
-    sec_pwd = data[SECURITY_PWD]
-
     if is_User("Tutor") == 200 and not (model_name == "Exam" or model_name == "Discussion" or model_name == "File"):
         return Response(
             401,
