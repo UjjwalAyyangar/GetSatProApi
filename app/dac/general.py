@@ -124,7 +124,7 @@ def delete_user(field):
                 # delete discussions
                 _ = delete_list(del_discussions)
 
-            return True
+            return delete(field)
 
         # delete tutor
         else:
