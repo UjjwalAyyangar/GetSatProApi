@@ -29,10 +29,6 @@ def api_del():
     data = request.get_json()
     model_id = data[MODEL_ID]
     model_name = data[MODEL_NAME]
-    if is_User("Admin") == 200:
-        auth = users_dac.admin_auth(data)
-        if not auth:
-            return Response(401, "Please enter the security password"), 401
 
     if is_User("Tutor") == 200 and not (model_name == "Exam" or model_name == "Discussion" or model_name == "File"):
         return Response(
