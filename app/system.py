@@ -5,8 +5,7 @@ from app.dac import *
 from flask import jsonify
 
 
-# praeterian pawnable
-# buffer overl
+# utility function to map number to difficulty
 def get_difficulty(num):
     diff = {
         1: "Easy",
@@ -16,6 +15,7 @@ def get_difficulty(num):
     return diff[num]
 
 
+# utility function to parse a user's submission into desired format
 def parse_ans(Submission):
     data = {}
     for ans in Submission:
@@ -23,6 +23,7 @@ def parse_ans(Submission):
     return data
 
 
+# utility function to parse the options of a user's answers into the desired format for computation
 def parse_options(options):
     temp = []
     for option in options:
@@ -33,6 +34,12 @@ def parse_options(options):
 
 
 def auto_grade(Exam, Submission):
+    """ A function that is used to calculate the grade of an exam when it is taken by a student.
+
+    :param Exam: exam model object
+    :param Submission: dict : contains details of the answers given by the user
+    :return: grade obtained by the student as a float
+    """
     questions = Exam.Questions.all()
 
     total = 0
@@ -52,7 +59,7 @@ def auto_grade(Exam, Submission):
     return grade
 
 
-# decorator
+# decorator function for checking if the client request is authenticated
 def authenticated(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -64,7 +71,7 @@ def authenticated(function):
     return wrap
 
 
-# decorator
+# decorator function for checking if the client is an admin
 def is_admin(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -79,7 +86,7 @@ def is_admin(function):
     return wrap
 
 
-# decorator
+# decorator function for checking if the client is a tutor
 def is_tutor(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -94,7 +101,7 @@ def is_tutor(function):
     return wrap
 
 
-# decorator
+# decorator function for checking if the client is an admin or a tutor
 def is_admin_tutor(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -109,7 +116,7 @@ def is_admin_tutor(function):
     return wrap
 
 
-# decorator
+# decorator function for checking if the client is an admin or a student
 def is_admin_student(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -124,7 +131,7 @@ def is_admin_student(function):
     return wrap
 
 
-# decorator
+# decorator function for checking if the client is a tutor or a student
 def is_tutor_student(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -139,7 +146,7 @@ def is_tutor_student(function):
     return wrap
 
 
-# decorator
+# decorator function for checking if the client is a student
 def is_student(function):
     @wraps(function)
     def wrap(*args, **kwargs):
@@ -155,6 +162,11 @@ def is_student(function):
 
 
 def is_User(usr_type):
+    """
+
+    :param usr_type: string : "Student", "Tutor", "Admin"
+    :return: integer -> 200: if the user is of the type specified in usr_type, 401 otherwise
+    """
     if current_user.is_authenticated:
         if current_user.UserRole.User_Type == usr_type:
             return 200
@@ -173,6 +185,11 @@ def complete_request(data):
 
 
 def is_acceptable_file(filename):
+    """ A utility function that checks if the file uploaded follows an acceptable format
+
+    :param filename: name of the file which needs to be uploaded
+    :return: True if the file has an acceptable format, False otherwise
+    """
     file_ext = filename.split('.')[1].lower()
     allowed_extensions = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
     if file_ext in allowed_extensions:
@@ -181,16 +198,19 @@ def is_acceptable_file(filename):
         return False
 
 
+# utility function to map module to folder
 def get_folder(mod_id):
     folders = {
         1: "Maths",
         2: "English"
     }
-
     return folders[mod_id]
 
 
 class Response():
+    """ A utility class for constructing generic api response
+    """
+
     def __init__(self, code=200, msg=None):
         self.code = code
         self.msg = msg
@@ -203,6 +223,9 @@ class Response():
 
 
 class ErrorResponse(Response):
+    """ A utility class that inherits the Response class for constructing generic api error response
+    """
+
     def __init__(self, code=None):
         self.code = code
         self.msg = self.get_standard(code)
@@ -217,12 +240,3 @@ class ErrorResponse(Response):
             500: "Internal Server Error"
         }
         return standard[code]
-
-
-"""
-Some of the issues I am facing
-* DB sync
-* Scalability? I'll have to check. But I can do it.
-
-
-"""

@@ -12,10 +12,16 @@ from app.dac import general as gen_dac
 
 
 def get_all_sets(data):
+    """ A utility function that is used to get all the flashcards sets from the database
+
+    :param data:
+    :return: list of flashcard set model objects if flashcard sets are found, None otherwise
+    """
     if MODULE_ID in data:
         module = mod_dac.get_module(data[MODULE_ID])
         sets = module.Sets.all()
     else:
+        # querying the Flashcard Set database
         sets = FlashcardSet.query.all()
 
     if sets:
@@ -24,9 +30,14 @@ def get_all_sets(data):
         return None
 
 
-# (stud_id,fc_id): is the key!
 def get_flashcard_set(data):
+    """ A function that is used to return flashcard sets from a table
+
+    :param data: dict : contains details of the flashcard set that is desired
+    :return: flashcard set model object if the desired flashcard set is found, None otherwise
+    """
     try:
+        # querying the flashcard set table by Flashcard set id
         return FlashcardSet.query.filter_by(
             Set_ID=data[FLASHCARD_SET_ID]
         ).one()
@@ -35,7 +46,13 @@ def get_flashcard_set(data):
 
 
 def get_flashcard(data):
+    """ A function that is used to return a flashcard from a table.
+
+    :param data: dict : contains details of the flashcard that is desired by the client
+    :return: flashcard model object if the desired flashcard is found, None otherwise
+    """
     try:
+        # querying the flashcard model by flashcard id
         return Flashcard.query.filter_by(
             FC_ID=data[FLASHCARD_ID]
         ).one()
@@ -44,6 +61,13 @@ def get_flashcard(data):
 
 
 def get_fc_pref_all(data):
+    """ A function that is used to return all the preference cards of a particular set
+
+    :param data: dict : contains the following keys
+                    - set_id : integer : flashcard set id
+                    - student_id : integer : user_id of the student
+    :return: list of preference cards model objects if they are found, None otherwise
+    """
     try:
 
         all_pref_cards = db.session.query(FC_Preference).join(Flashcard).filter(
@@ -56,6 +80,13 @@ def get_fc_pref_all(data):
 
 
 def get_progress(data):
+    """ A function that returns the progress of a student in a module
+
+    :param data: dict : contains the following keys :
+                - student_id : user_id of the student
+                - set_id : set_id of the flashcard whose progress is being desired by the client
+    :return: prog : float : progress of the user in the current set
+    """
     all_pref_cards = get_fc_pref_all({
         STUDENT_ID: data[STUDENT_ID],
         FLASHCARD_SET_ID: data[FLASHCARD_SET_ID]
@@ -63,7 +94,8 @@ def get_progress(data):
 
     total = 0
     easy = 0
-    print(all_pref_cards)
+
+    # calculating progress
     for pref_card in all_pref_cards:
         if pref_card.Difficulty == 1:
             easy += 1
@@ -75,6 +107,13 @@ def get_progress(data):
 
 
 def get_fcpref(data):
+    """ A function that is used to get a field from the FC preference model/table
+
+    :param data: dict : contains the following keys :
+                - student_id : user_id of a student
+                - fc_id : id of a flashcard
+    :return: a model object denoting a field from the FC preference table
+    """
     try:
         return FC_Preference.query.filter_by(
             Student_ID=data[STUDENT_ID],
@@ -90,6 +129,13 @@ def get_fcpref(data):
 
 # move_down algorithm
 def move_down(pref_card, pref):
+    """ A function that is used to move down the difficulty in a preference card as per the
+    flashcard algorithm
+
+    :param pref_card: obj :  the preference card whose difficulty needs to be decreased
+    :param pref: integer :  the preference desired by the client
+    :return: the updated pref_card object
+    """
     if pref == 1:  # Easy
         pref_card.Count -= 2
     else:
@@ -104,6 +150,13 @@ def move_down(pref_card, pref):
 
 # move_up algorithm
 def move_up(pref_card, pref):
+    """ A function that is used to move up the difficulty in a preference card as per the
+        flashcard algorithm
+
+        :param pref_card: the preference card whose difficulty needs to be increased
+        :param pref: the preference desired by the client
+        :return: the updated pref_card object
+        """
     pref_card.Difficulty = pref
     pref_card.Count = 3
     return pref_card
@@ -111,6 +164,14 @@ def move_up(pref_card, pref):
 
 # setting preferences
 def set_pref(data, pref_card):
+    """ A function that is used to set the preference of a flashcard
+
+    :param data: dict : contains the following keys
+                - pref : the desired preference by the client
+                - fc_id : the flashcard whose preference is going to be set
+    :param pref_card: the preference card whose preference needs to be set
+    :return:
+    """
     fc_id = data[FLASHCARD_ID]
 
     pref = data[FLASHCARD_PREF]
@@ -126,12 +187,19 @@ def set_pref(data, pref_card):
 
     set_id = Flashcard.query.filter_by(FC_ID=fc_id).one().Set_ID
 
+    # fetch the next flashcard as per the defined probability
     next_card = get_next_flashcard(set_id, pref_card.Student_ID)
     next_card = Flashcard.query.filter_by(FC_ID=next_card.FC_ID).one()
     return next_card
 
 
 def fc_pref_init(fc_id, stud_id):
+    """ A function that is used to initialize preference table of a flashcard
+
+    :param fc_id: integer : the id of the flashcard whose preference card needs to be initialized
+    :param stud_id: the user id of a student
+    :return: pref card object, if preference card is initialized, None otherwise
+    """
     new_fc_pref = FC_Preference(
         Student_ID=stud_id,
         FC_ID=fc_id
@@ -141,6 +209,14 @@ def fc_pref_init(fc_id, stud_id):
 
 # Probabilistic fetch
 def prob_fetch():
+    """ A function that is used to find the difficulty of the next flashcard that needs to be fetched
+    according to the following probability :
+    Difficult = 50%
+    Medium = 30%
+    Easy = 20%
+
+    :return: an integer denoting the difficulty of the next flashcard that is going to be fetched
+    """
     # For probabilistic fetch
     score = 0
     # prob_arr = [20, 30, 50]
@@ -166,6 +242,12 @@ def prob_fetch():
 
 # Get next flash card
 def get_next_flashcard(set_id, stud_id):
+    """ A function that is used to get the next flashcard
+
+    :param set_id: id of the flashcard set
+    :param stud_id: user_id of a student
+    :return: next flash card object
+    """
     all_pref_cards = get_fc_pref_all({
         STUDENT_ID: stud_id,
         FLASHCARD_SET_ID: set_id
@@ -179,8 +261,7 @@ def get_next_flashcard(set_id, stud_id):
             pref_cards.append(pref_card)
 
     rest_cards = all_pref_cards
-    # print(pref_cards)
-    # print(rest_cards)
+
     if len(pref_cards) > 0:
         return pref_cards[randint(0, len(pref_cards) - 1)]
     else:
@@ -188,6 +269,11 @@ def get_next_flashcard(set_id, stud_id):
 
 
 def reset_flashcard_set(data):
+    """ A function that is used to reset a student's progress in a flashcard set
+
+    :param data: dict : contains details about a flashcard set
+    :return:
+    """
     try:
         pref_cards = get_fc_pref_all(data).all()
         for pref_card in pref_cards:

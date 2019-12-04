@@ -1,4 +1,5 @@
-# To keep the api keys consistent
+# This file contains all the keys that are used in the API
+# API naming convention used = OpenAPI naming convention
 
 
 MODEL_ID = "model_id"

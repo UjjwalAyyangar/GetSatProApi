@@ -51,7 +51,7 @@ def get_progress(Module, stud_id):
 
     :param Module:
     :param stud_id:
-    :return:
+    :return: a float value that gives the progress of the module
     """
     exams = Module.Exams.all()
     total = len(exams)
@@ -67,6 +67,11 @@ def get_progress(Module, stud_id):
 
 
 def get_tutor_module(tutor_id):
+    """
+
+    :param tutor_id: integer : the user_id of a tutor
+    :return: the model object indicating a field from the tutor_module table, None if not found
+    """
     try:
         return TutorModule.query.filter_by(Tutor_ID=tutor_id).one()
     except sqlalchemy.orm.exc.NoResultFound:
@@ -74,6 +79,12 @@ def get_tutor_module(tutor_id):
 
 
 def assign_tutor_module(tutor_id, mod_id):
+    """
+
+    :param tutor_id: integer : the user_id of a tutor
+    :param mod_id: the module id of a module
+    :return: None, if there was any trouble assigning a tutor to a module, a field from tutor module table otherwise
+    """
     new_tut_mod = TutorModule(
         Tutor_ID=tutor_id,
         Module_ID=mod_id
